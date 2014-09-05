@@ -1,3 +1,9 @@
+package Robot;
+import SuppliedFiles.DifferentialDriveRequest;
+import SuppliedFiles.LocalizationResponse;
+import SuppliedFiles.RobotCommunication;
+
+
 /**
  * TestRobot interfaces to the (real or virtual) robot over a network
  * connection. It uses Java -> JSON -> HttpRequest -> Network -> DssHost32 ->
