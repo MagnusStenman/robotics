@@ -2,11 +2,14 @@ package Robot;
 
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.List;
 import java.util.Map;
 
 import SuppliedFiles.DifferentialDriveRequest;
@@ -14,9 +17,16 @@ import SuppliedFiles.LocalizationResponse;
 import SuppliedFiles.Request;
 import SuppliedFiles.Response;
 
+
+
+
+
+
 // Jar file for JSON support
 import com.fasterxml.jackson.core.*;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.annotation.*;
 
 /**
@@ -54,6 +64,19 @@ public class TestRobot
     */
    public static void main(String[] args) throws Exception
    {     
+   
+	   // READING FILE
+	   File file = new File("testPath.json");
+	   ObjectMapper test = new ObjectMapper();
+  
+	   List<Map<String, Object>> theList = 
+			   test.readValue(file, TypeFactory.defaultInstance().constructCollectionType(List.class, Map.class));
+  
+	   for (int i=0;i<theList.size();i++) {
+		   System.out.println(theList.get(i));
+	   }
+	   // END OF READ AND PRINT
+	   	   
       System.out.println("Creating Robot");
       TestRobot robot = new TestRobot("http://127.0.0.1", 50000);
 
