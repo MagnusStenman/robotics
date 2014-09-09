@@ -72,8 +72,10 @@ public class TestRobot
 	   List<Map<String, Object>> theList = 
 			   test.readValue(file, TypeFactory.defaultInstance().constructCollectionType(List.class, Map.class));
   
+	   LocalizationResponse lr2 = new LocalizationResponse();
 	   for (int i=0;i<theList.size();i++) {
-		   System.out.println(theList.get(i));
+		   lr2.setData(theList.get(i));
+		   System.out.println("POSITION: " + lr2.getHeadingAngle());
 	   }
 	   // END OF READ AND PRINT
 	   	   
