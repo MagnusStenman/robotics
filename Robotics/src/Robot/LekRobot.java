@@ -13,6 +13,7 @@ import java.util.Map;
 
 import SuppliedFiles.DifferentialDriveRequest;
 import SuppliedFiles.LocalizationResponse;
+import SuppliedFiles.Position;
 import SuppliedFiles.Request;
 import SuppliedFiles.Response;
 
@@ -83,16 +84,37 @@ public class LekRobot {
 		 * Is path defined? if yes continue with algorithm
 		 * 
 		 * 1. check robot position
-		 * 2. check length and angle towards next position (in loop?)
+		 * 2. check length and angle towards next position
 		 * 3. calculate angular and linear speed
 		 * 4. run for calculated seconds
 		 * 
 		 * (loop) check #2 again to see if we are close to target
 		 * 		- if close track next target position and run loop
-		 * 		- if not -> continue loop (2 -> 3 -> 4)
+		 * 		- if not -> continue loop (1 -> 2 -> 3 -> 4)
 		 * 
 		 */
 		
+		int i=0;
+		do {
+			
+			LocalizationResponse robotLR = new LocalizationResponse();
+			LocalizationResponse nextLR = new LocalizationResponse();
+			nextLR.setData(mapList.get(i));
+			robot.getResponse(robotLR);
+			Position robotPos = new Position(robotLR.getPosition());
+			Position nextPos = new Position(nextLR.getPosition());
+			
+			double targetDistance = robotPos.getDistanceTo(nextPos);
+			double targetAngle = robotPos.getBearingTo(nextPos);
+			
+			System.out.println("robotPOS: " + robotPos.getX() + ", " + robotPos.getY());
+			System.out.println("nextPOS: " + nextPos.getX() + ", " + nextPos.getY());
+			System.out.println("target distance " + targetDistance);
+			System.out.println("target angle " + targetAngle);
+			
+			i++;
+			
+		} while (mapList.size() > i);
 		
 		//TESTCODE//
 		/*
