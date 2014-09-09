@@ -168,17 +168,15 @@ public class LekRobot {
 			
 			DifferentialDriveRequest ddr = new DifferentialDriveRequest();
 
-			// KOLLA OM VINKLARNA SKILJER MER ÄN 180GRADER OCH SVÄNG DÄREFTER?
-
 			if (Math.abs(angleDiff) > 5) {
 				ddr.setLinearSpeed(0.0);
 				ddr.setAngularSpeed(0.0);
 				if (angleDiff < 0) {
-					// HÖGER
+					// RIGHT
 					ddr.setAngularSpeed(0.5);
 					putRequest(ddr);
 				} else {
-					// VÄNSTER
+					// LEFT
 					ddr.setAngularSpeed(-0.5);
 					putRequest(ddr);
 				}
