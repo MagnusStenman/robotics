@@ -1,5 +1,6 @@
 package Robot;
 
+import java.awt.peer.RobotPeer;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -10,6 +11,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
 import java.util.Map;
+
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import SuppliedFiles.DifferentialDriveRequest;
 import SuppliedFiles.LocalizationResponse;
@@ -61,8 +65,9 @@ public class LekRobot {
 	public static void main(String[] args) {
 
 		LekRobot robot = new LekRobot("http://127.0.0.1", 50000,
-				"testPath.json");
+				"Path-to-bed.json");
 		try {
+			System.out.println("START");
 			robot.start();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -100,20 +105,11 @@ public class LekRobot {
 			LocalizationResponse robotLR = new LocalizationResponse();
 			LocalizationResponse nextLR = new LocalizationResponse();
 			nextLR.setData(mapList.get(i));
-			robot.getResponse(robotLR);
-			Position robotPos = new Position(robotLR.getPosition());
-			Position nextPos = new Position(nextLR.getPosition());
 			
-			double targetDistance = robotPos.getDistanceTo(nextPos);
-			double targetAngle = Math.toDegrees(robotPos.getBearingTo(nextPos));
-			if(targetAngle < 0) {
-				targetAngle += 360;
-			}
-			System.out.println("robotPOS: " + robotPos.getX() + ", " + robotPos.getY());
-			System.out.println("nextPOS: " + nextPos.getX() + ", " + nextPos.getY());
-			System.out.println("target distance " + targetDistance);
-			System.out.println("target angle " + targetAngle);
+			calculateAndMove(robotLR, nextLR);
 			
+
+			System.out.println("mapcount: " + i);
 			i++;
 			
 		} while (mapList.size() > i);
@@ -144,6 +140,58 @@ public class LekRobot {
 		*/
 		//TESTCODE//
 		
+	}
+
+	private void calculateAndMove(LocalizationResponse robotLR, LocalizationResponse nextLR) throws Exception {
+		
+		double targetDistance = 1;
+		
+		while (targetDistance > 0.3) {
+		
+			robot.getResponse(robotLR);
+			Position robotPos = new Position(robotLR.getPosition());
+			Position nextPos = new Position(nextLR.getPosition());
+			double robotHeading = getBearingAngle(robotLR);
+			targetDistance = robotPos.getDistanceTo(nextPos);
+			double targetAngle = Math.toDegrees(robotPos.getBearingTo(nextPos));
+			if(targetAngle < 0) {
+				targetAngle += 360;
+			}
+			
+			/*
+			 * 1. Calculate angle and speed (depending on target distance & angle)
+			 * 2. Putrequest
+			 * 3. Sleep ms (30ms?)
+			 * 4. goto 1
+			 */
+			double angleDiff = targetAngle - robotHeading;
+			DifferentialDriveRequest ddr = new DifferentialDriveRequest();
+			
+			if (Math.abs(angleDiff) > 5) {
+				if (angleDiff < 0) {
+					//HÖGER
+					System.out.println("\n" + angleDiff + "höger?");
+					ddr.setAngularSpeed(0.5);
+				} else {
+					//VÄNSTER
+					System.out.println(angleDiff + "vänster?");
+					ddr.setAngularSpeed(-0.5);
+				}
+				ddr.setLinearSpeed(0.0);
+			} else {
+				ddr.setAngularSpeed(0.0);
+				ddr.setLinearSpeed(0.5);
+			}
+			putRequest(ddr);
+			
+//			System.out.println("robotPOS: " + robotPos.getX() + ", " + robotPos.getY());
+//			System.out.println("nextPOS: " + nextPos.getX() + ", " + nextPos.getY());
+			System.out.println("target distance " + targetDistance);
+//			System.out.println("target angle " + targetAngle);
+//			System.out.println("robot angle " + robotHeading);
+			System.out.println("angle diff " + Math.abs(angleDiff));
+		}
+		System.out.println("UTE!");
 	}
 
 	/**
@@ -191,7 +239,6 @@ public class LekRobot {
 	 */
 	public Response getResponse(Response r) throws Exception {
 		URL url = new URL(host + ":" + port + r.getPath());
-		System.out.println(url);
 
 		// open a connection to the web server and then get the resulting data
 		URLConnection connection = url.openConnection();
