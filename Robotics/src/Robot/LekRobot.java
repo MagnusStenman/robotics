@@ -105,8 +105,10 @@ public class LekRobot {
 			Position nextPos = new Position(nextLR.getPosition());
 			
 			double targetDistance = robotPos.getDistanceTo(nextPos);
-			double targetAngle = robotPos.getBearingTo(nextPos);
-			
+			double targetAngle = Math.toDegrees(robotPos.getBearingTo(nextPos));
+			if(targetAngle < 0) {
+				targetAngle += 360;
+			}
 			System.out.println("robotPOS: " + robotPos.getX() + ", " + robotPos.getY());
 			System.out.println("nextPOS: " + nextPos.getX() + ", " + nextPos.getY());
 			System.out.println("target distance " + targetDistance);
