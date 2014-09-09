@@ -85,117 +85,131 @@ public class LekRobot {
 
 	public void start() throws Exception {
 
-		/* 
+		/*
 		 * Is path defined? if yes continue with algorithm
 		 * 
-		 * 1. check robot position
-		 * 2. check length and angle towards next position
-		 * 3. calculate angular and linear speed
-		 * 4. run for calculated seconds
+		 * 1. check robot position 2. check length and angle towards next
+		 * position 3. calculate angular and linear speed 4. run for calculated
+		 * seconds
 		 * 
-		 * (loop) check #2 again to see if we are close to target
-		 * 		- if close track next target position and run loop
-		 * 		- if not -> continue loop (1 -> 2 -> 3 -> 4)
-		 * 
+		 * (loop) check #2 again to see if we are close to target - if close
+		 * track next target position and run loop - if not -> continue loop (1
+		 * -> 2 -> 3 -> 4)
 		 */
+		System.out.println("Number of path coordinates: " + mapList.size());
 		
-		int i=0;
+		int i = 0;
 		do {
-			
+
 			LocalizationResponse robotLR = new LocalizationResponse();
 			LocalizationResponse nextLR = new LocalizationResponse();
 			nextLR.setData(mapList.get(i));
-			
-			calculateAndMove(robotLR, nextLR);
-			
 
-			System.out.println("mapcount: " + i);
+			calculateAndMove(robotLR, nextLR);
+
+			System.out.println("MAPCOUNT: " + i);
 			i++;
-			
+
 		} while (mapList.size() > i);
-		
-		//TESTCODE//
+
+		// TESTCODE//
 		/*
-		DifferentialDriveRequest ddr = new DifferentialDriveRequest();
-		
-		LocalizationResponse lr = new LocalizationResponse();
-		robot.getResponse(lr);
-		
-		if (robot.getBearingAngle(lr) < 0) {
-			
-		}
-		
-		System.out.println(robot.getBearingAngle(lr));
-		
-		ddr.setAngularSpeed(0.2);
-		putRequest(ddr);
-		try {
-			Thread.sleep(10000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		ddr.setAngularSpeed(0);
-		putRequest(ddr);
-		*/
-		//TESTCODE//
-		
+		 * DifferentialDriveRequest ddr = new DifferentialDriveRequest();
+		 * 
+		 * LocalizationResponse lr = new LocalizationResponse();
+		 * robot.getResponse(lr);
+		 * 
+		 * if (robot.getBearingAngle(lr) < 0) {
+		 * 
+		 * }
+		 * 
+		 * System.out.println(robot.getBearingAngle(lr));
+		 * 
+		 * ddr.setAngularSpeed(0.2); putRequest(ddr); try { Thread.sleep(10000);
+		 * } catch (InterruptedException e) { // TODO Auto-generated catch block
+		 * e.printStackTrace(); } ddr.setAngularSpeed(0); putRequest(ddr);
+		 */
+		// TESTCODE//
+
 	}
 
-	private void calculateAndMove(LocalizationResponse robotLR, LocalizationResponse nextLR) throws Exception {
-		
+	private void calculateAndMove(LocalizationResponse robotLR,
+			LocalizationResponse nextLR) throws Exception {
+
 		double targetDistance = 1;
-		
-		while (targetDistance > 0.3) {
-		
+
+		while (targetDistance > 0.5) {
+
 			robot.getResponse(robotLR);
 			Position robotPos = new Position(robotLR.getPosition());
 			Position nextPos = new Position(nextLR.getPosition());
 			double robotHeading = getBearingAngle(robotLR);
 			targetDistance = robotPos.getDistanceTo(nextPos);
-			double targetAngle = Math.toDegrees(robotPos.getBearingTo(nextPos));
-			if(targetAngle < 0) {
+			double targetAngle = Math.toDegrees(robotPos
+					.getBearingTo(nextPos));
+			if (targetAngle < 0) {
 				targetAngle += 360;
 			}
-			
+
 			/*
-			 * 1. Calculate angle and speed (depending on target distance & angle)
-			 * 2. Putrequest
-			 * 3. Sleep ms (30ms?)
+			 * 1. Calculate angle and speed (depending on target distance &
+			 * angle) 
+			 * 2. Putrequest 
+			 * 3. Sleep ms (30ms?) 
 			 * 4. goto 1
 			 */
-			double angleDiff = targetAngle - robotHeading;
+			
+//			double angleDiff = robotHeading - targetAngle;
+//			if (angleDiff > 180) {
+//				angleDiff -= 360;
+//			}
+			
+			double angleDiff = calculateDifferenceBetweenAngles(robotHeading, targetAngle);
+			
 			DifferentialDriveRequest ddr = new DifferentialDriveRequest();
-			
-//			 KOLLA OM VINKLARNA SKILJER MER ÄN 180GRADER OCH SVÄNG DÄREFTER
-			
+
+			// KOLLA OM VINKLARNA SKILJER MER Ã„N 180GRADER OCH SVÃ„NG DÃ„REFTER?
+
 			if (Math.abs(angleDiff) > 5) {
-				if (angleDiff < 0) {
-					//HÖGER
-					System.out.println("\n" + angleDiff + "höger?");
-					ddr.setAngularSpeed(0.5);
-				} else {
-					//VÄNSTER
-					System.out.println(angleDiff + "vänster?");
-					ddr.setAngularSpeed(-0.5);
-				}
 				ddr.setLinearSpeed(0.0);
+				ddr.setAngularSpeed(0.0);
+				if (angleDiff < 0) {
+					// HÃ–GER
+					ddr.setAngularSpeed(0.5);
+					putRequest(ddr);
+				} else {
+					// VÃ„NSTER
+					ddr.setAngularSpeed(-0.5);
+					putRequest(ddr);
+				}
+				putRequest(ddr);
 			} else {
 				ddr.setAngularSpeed(0.0);
 				ddr.setLinearSpeed(0.5);
+				putRequest(ddr);
 			}
-			putRequest(ddr);
 			
-//			System.out.println("robotPOS: " + robotPos.getX() + ", " + robotPos.getY());
-//			System.out.println("nextPOS: " + nextPos.getX() + ", " + nextPos.getY());
+
+			// System.out.println("robotPOS: " + robotPos.getX() + ", " +
+			// robotPos.getY());
+			// System.out.println("nextPOS: " + nextPos.getX() + ", " +
+			// nextPos.getY());
 			System.out.println("target distance " + targetDistance);
-//			System.out.println("target angle " + targetAngle);
-//			System.out.println("robot angle " + robotHeading);
-			System.out.println("angle diff " + Math.abs(angleDiff));
+			 System.out.println("target angle " + targetAngle);
+			 System.out.println("robot angle " + robotHeading);
+			System.out.println("angle diff " + angleDiff);
 		}
 		System.out.println("UTE!");
 	}
 
+	private double calculateDifferenceBetweenAngles(double firstAngle, double secondAngle)
+	  {
+	        double diffangle = (firstAngle - secondAngle) + 180;
+	        diffangle = (diffangle / 360.0);
+    		diffangle = ((diffangle - Math.floor( diffangle )) * 360.0) - 180;
+    		return diffangle;
+	 }
+	
 	/**
 	 * Send a request to the robot.
 	 * 
@@ -207,7 +221,8 @@ public class LekRobot {
 	public int putRequest(Request r) throws Exception {
 		URL url = new URL(host + ":" + port + r.getPath());
 
-		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+		HttpURLConnection connection = (HttpURLConnection) url
+				.openConnection();
 
 		connection.setDoOutput(true);
 
@@ -255,15 +270,15 @@ public class LekRobot {
 
 		return r;
 	}
-	
+
 	double getBearingAngle(LocalizationResponse lr) {
 		double e[] = lr.getOrientation();
 
 		double angle = 2 * Math.atan2(e[3], e[0]);
 		double positiveAngle = angle * 180 / Math.PI;
-		if (positiveAngle < 0) {
-			positiveAngle += 360;
-		}
+//		if (positiveAngle < 0) {
+//			positiveAngle += 360;
+//		}
 		return positiveAngle;
 	}
 }
