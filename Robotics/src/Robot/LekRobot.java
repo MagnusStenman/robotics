@@ -79,6 +79,22 @@ public class LekRobot {
 
 	public void start() throws Exception {
 
+		/* 
+		 * Is path defined? if yes continue with algorithm
+		 * 
+		 * 1. check robot position
+		 * 2. check length and angle towards next position (in loop?)
+		 * 3. calculate angular and linear speed
+		 * 4. run for calculated seconds
+		 * 
+		 * (loop) check #2 again to see if we are close to target
+		 * 		- if close track next target position and run loop
+		 * 		- if not -> continue loop (2 -> 3 -> 4)
+		 * 
+		 */
+		
+		
+		
 		DifferentialDriveRequest ddr = new DifferentialDriveRequest();
 		
 		LocalizationResponse lr = new LocalizationResponse();
