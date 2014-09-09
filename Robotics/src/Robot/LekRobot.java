@@ -94,7 +94,8 @@ public class LekRobot {
 		 */
 		
 		
-		
+		//TESTCODE//
+		/*
 		DifferentialDriveRequest ddr = new DifferentialDriveRequest();
 		
 		LocalizationResponse lr = new LocalizationResponse();
@@ -116,6 +117,8 @@ public class LekRobot {
 		}
 		ddr.setAngularSpeed(0);
 		putRequest(ddr);
+		*/
+		//TESTCODE//
 		
 	}
 
