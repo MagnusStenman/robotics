@@ -167,6 +167,8 @@ public class LekRobot {
 			double angleDiff = targetAngle - robotHeading;
 			DifferentialDriveRequest ddr = new DifferentialDriveRequest();
 			
+//			 KOLLA OM VINKLARNA SKILJER MER ÄN 180GRADER OCH SVÄNG DÄREFTER
+			
 			if (Math.abs(angleDiff) > 5) {
 				if (angleDiff < 0) {
 					//HÖGER
