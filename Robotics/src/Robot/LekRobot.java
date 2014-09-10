@@ -9,6 +9,7 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 
@@ -96,8 +97,9 @@ public class LekRobot {
 		 * track next target position and run loop - if not -> continue loop (1
 		 * -> 2 -> 3 -> 4)
 		 */
+		long timeStart = System.currentTimeMillis();
 		System.out.println("Number of path coordinates: " + mapList.size());
-		
+
 		int i = 0;
 		do {
 
@@ -111,12 +113,15 @@ public class LekRobot {
 			i++;
 
 		} while (mapList.size() > i);
-		
+
 		DifferentialDriveRequest ddr = new DifferentialDriveRequest();
 		ddr.setLinearSpeed(0);
 		ddr.setAngularSpeed(0);
 		putRequest(ddr);
-
+		
+		long timeStop = System.currentTimeMillis();
+		
+		System.out.println("TIME IT TOOK: "+ new SimpleDateFormat("mm:ss").format(timeStop-timeStart));
 		// TESTCODE//
 		/*
 		 * DifferentialDriveRequest ddr = new DifferentialDriveRequest();
@@ -145,74 +150,84 @@ public class LekRobot {
 
 		while (targetDistance > 0.5) {
 
+
 			robot.getResponse(robotLR);
 			Position robotPos = new Position(robotLR.getPosition());
 			Position nextPos = new Position(nextLR.getPosition());
 			double robotHeading = getBearingAngle(robotLR);
 			targetDistance = robotPos.getDistanceTo(nextPos);
-			double targetAngle = Math.toDegrees(robotPos
-					.getBearingTo(nextPos));
+			double targetAngle = Math.toDegrees(robotPos.getBearingTo(nextPos));
 			if (targetAngle < 0) {
 				targetAngle += 360;
 			}
 
 			/*
 			 * 1. Calculate angle and speed (depending on target distance &
-			 * angle) 
-			 * 2. Putrequest 
-			 * 3. Sleep ms (30ms?) 
-			 * 4. goto 1
+			 * angle) 2. Putrequest 3. Sleep ms (30ms?) 4. goto 1
 			 */
-			
-//			double angleDiff = robotHeading - targetAngle;
-//			if (angleDiff > 180) {
-//				angleDiff -= 360;
-//			}
-			
-			double angleDiff = calculateDifferenceBetweenAngles(robotHeading, targetAngle);
-			
+
+			// double angleDiff = robotHeading - targetAngle;
+			// if (angleDiff > 180) {
+			// angleDiff -= 360;
+			// }
+
+			double angleDiff = calculateDifferenceBetweenAngles(robotHeading,
+					targetAngle);
+
 			DifferentialDriveRequest ddr = new DifferentialDriveRequest();
 
-			if (Math.abs(angleDiff) > 5) {
+			if (Math.abs(angleDiff) > 2) {
 				ddr.setLinearSpeed(0.2);
 				ddr.setAngularSpeed(0.0);
 				if (angleDiff < 0) {
 					// RIGHT
-					ddr.setAngularSpeed(0.4);
-					putRequest(ddr);
+					ddr.setAngularSpeed(0.6);
 				} else {
 					// LEFT
-					ddr.setAngularSpeed(-0.4);
-					putRequest(ddr);
+					ddr.setAngularSpeed(-0.6);
+				}
+				if (angleDiff > 90 || angleDiff < -90) {
+					if (angleDiff > 0) {
+						ddr.setAngularSpeed(-1);
+					} else {
+						ddr.setAngularSpeed(1);
+					}
+					ddr.setLinearSpeed(0);
+				} else if (Math.abs(angleDiff) < 30) {
+					ddr.setLinearSpeed(0.8);
+				}
+				
+				if(Math.abs(angleDiff) > 30 && targetDistance > 1) {
+					System.out.println("INEE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+					ddr.setLinearSpeed(1);
 				}
 				putRequest(ddr);
 			} else {
 				ddr.setAngularSpeed(0.0);
-				ddr.setLinearSpeed(0.8);
+				ddr.setLinearSpeed(1.0);
 				putRequest(ddr);
 			}
-			
 
 			// System.out.println("robotPOS: " + robotPos.getX() + ", " +
 			// robotPos.getY());
 			// System.out.println("nextPOS: " + nextPos.getX() + ", " +
 			// nextPos.getY());
-			System.out.println("target distance " + targetDistance);
-			 System.out.println("target angle " + targetAngle);
-			 System.out.println("robot angle " + robotHeading);
-			System.out.println("angle diff " + angleDiff);
+//			System.out.println("target distance " + targetDistance);
+//			System.out.println("target angle " + targetAngle);
+//			System.out.println("robot angle " + robotHeading);
+//			System.out.println("angle diff " + angleDiff);
 		}
 		System.out.println("UTE!");
 	}
 
-	private double calculateDifferenceBetweenAngles(double firstAngle, double secondAngle)
-	  {
-	        double diffangle = (firstAngle - secondAngle) + 180;
-	        diffangle = (diffangle / 360.0);
-    		diffangle = ((diffangle - Math.floor( diffangle )) * 360.0) - 180;
-    		return diffangle;
-	 }
-	
+	private double calculateDifferenceBetweenAngles(double firstAngle,
+			double secondAngle) {
+		double diffangle = (firstAngle - secondAngle) + 180;
+		diffangle = (diffangle / 360.0);
+		diffangle = ((diffangle - Math.floor(diffangle)) * 360.0) - 180;
+		return diffangle;
+	}
+
 	/**
 	 * Send a request to the robot.
 	 * 
@@ -224,8 +239,7 @@ public class LekRobot {
 	public int putRequest(Request r) throws Exception {
 		URL url = new URL(host + ":" + port + r.getPath());
 
-		HttpURLConnection connection = (HttpURLConnection) url
-				.openConnection();
+		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
 		connection.setDoOutput(true);
 
@@ -279,9 +293,9 @@ public class LekRobot {
 
 		double angle = 2 * Math.atan2(e[3], e[0]);
 		double positiveAngle = angle * 180 / Math.PI;
-//		if (positiveAngle < 0) {
-//			positiveAngle += 360;
-//		}
+		// if (positiveAngle < 0) {
+		// positiveAngle += 360;
+		// }
 		return positiveAngle;
 	}
 }
