@@ -61,7 +61,7 @@ public class time0035 {
 
 	public static void main(String[] args) {
 
-		LekRobot robot = new LekRobot("http://127.0.0.1", 50000,
+		time0035 robot = new time0035("http://127.0.0.1", 50000,
 				"Path-around-table-and-back.json");
 		try {
 			System.out.println("START");
