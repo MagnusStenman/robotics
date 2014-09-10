@@ -23,15 +23,15 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
-public class LekRobot {
+public class time0035 {
 
 	private String host;
 	private int port;
-	private LekRobot robot;
+	private time0035 robot;
 	private ObjectMapper mapper;
 	private List<Map<String, Object>> mapList;
 
-	public LekRobot(String host, int port) {
+	public time0035(String host, int port) {
 		this.host = host;
 		this.port = port;
 		this.robot = this;
@@ -39,7 +39,7 @@ public class LekRobot {
 		mapper = new ObjectMapper();
 	}
 
-	public LekRobot(String host, int port, String filePath) {
+	public time0035(String host, int port, String filePath) {
 		this.host = host;
 		this.port = port;
 		this.robot = this;
