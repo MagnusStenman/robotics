@@ -65,7 +65,7 @@ public class LekRobot {
 	public static void main(String[] args) {
 
 		LekRobot robot = new LekRobot("http://127.0.0.1", 50000,
-				"Path-to-bed.json");
+				"Path-around-table-and-back.json");
 		try {
 			System.out.println("START");
 			robot.start();
@@ -111,6 +111,11 @@ public class LekRobot {
 			i++;
 
 		} while (mapList.size() > i);
+		
+		DifferentialDriveRequest ddr = new DifferentialDriveRequest();
+		ddr.setLinearSpeed(0);
+		ddr.setAngularSpeed(0);
+		putRequest(ddr);
 
 		// TESTCODE//
 		/*
@@ -169,21 +174,21 @@ public class LekRobot {
 			DifferentialDriveRequest ddr = new DifferentialDriveRequest();
 
 			if (Math.abs(angleDiff) > 5) {
-				ddr.setLinearSpeed(0.0);
+				ddr.setLinearSpeed(0.2);
 				ddr.setAngularSpeed(0.0);
 				if (angleDiff < 0) {
 					// RIGHT
-					ddr.setAngularSpeed(0.5);
+					ddr.setAngularSpeed(0.4);
 					putRequest(ddr);
 				} else {
 					// LEFT
-					ddr.setAngularSpeed(-0.5);
+					ddr.setAngularSpeed(-0.4);
 					putRequest(ddr);
 				}
 				putRequest(ddr);
 			} else {
 				ddr.setAngularSpeed(0.0);
-				ddr.setLinearSpeed(0.5);
+				ddr.setLinearSpeed(0.8);
 				putRequest(ddr);
 			}
 			
