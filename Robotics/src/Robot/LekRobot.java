@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 
 public class LekRobot {
 
+	private int i = 0;
 	private String host;
 	private int port;
 	private LekRobot robot;
@@ -73,6 +74,42 @@ public class LekRobot {
 
 	}
 
+	private Position checkPos(Position robotPos, Position nextPos) {
+		Position startPos = nextPos;
+
+		LocalizationResponse lr = new LocalizationResponse();
+
+		if (mapList.size() > i + 1) {
+			lr.setData(mapList.get(i + 1));
+			Position nextPosition = new Position(lr.getPosition());
+
+			while (isShortDistance(robotPos, startPos, nextPosition)) {
+				if (mapList.size() > i + 1) {
+					i++;
+
+					lr.setData(mapList.get(i));
+					nextPosition = new Position(lr.getPosition());
+				} else {
+					break;
+				}
+			}
+			return nextPosition;
+		}
+		return null;
+	}
+
+	private boolean isShortDistance(Position robotPos, Position startPos,
+			Position nextPos) {
+		double one = robotPos.getDistanceTo(startPos);
+		double two = robotPos.getDistanceTo(nextPos);
+
+		double startAngle = robotPos.getBearingTo(startPos);
+		double nextAngle = robotPos.getBearingTo(nextPos);
+
+		return (Math.abs(one - two) < 1)
+				&& (Math.abs(startAngle - nextAngle) > 10);
+	}
+
 	public List<Map<String, Object>> readFile(String filePath)
 			throws JsonParseException, JsonMappingException, IOException {
 		File file = new File(filePath);
@@ -96,17 +133,25 @@ public class LekRobot {
 		long timeStart = System.currentTimeMillis();
 		System.out.println("Number of path coordinates: " + mapList.size());
 
-		int i = 0;
+		i = 0;
 		do {
 
 			LocalizationResponse robotLR = new LocalizationResponse();
 			LocalizationResponse nextLR = new LocalizationResponse();
+			robot.getResponse(robotLR);
 			nextLR.setData(mapList.get(i));
 
-			calculateAndMove(robotLR, nextLR);
-
-			// System.out.println("MAPCOUNT: " + i);
+			Position next = checkPos(new Position(robotLR.getPosition()),
+					new Position(nextLR.getPosition()));
+			if (next != null) {
+				calculateAndMove(robotLR, next);
+			}
 			i++;
+			if(hasReachedGoal(robotLR, next)) {
+				i = mapList.size()+1;
+			}
+			// System.out.println("MAPCOUNT: " + i);
+			
 
 		} while (mapList.size() > i);
 
@@ -119,29 +164,18 @@ public class LekRobot {
 
 		System.out.println("TIME IT TOOK: "
 				+ new SimpleDateFormat("mm:ss").format(timeStop - timeStart));
-		// TESTCODE//
-		/*
-		 * DifferentialDriveRequest ddr = new DifferentialDriveRequest();
-		 * 
-		 * LocalizationResponse lr = new LocalizationResponse();
-		 * robot.getResponse(lr);
-		 * 
-		 * if (robot.getBearingAngle(lr) < 0) {
-		 * 
-		 * }
-		 * 
-		 * System.out.println(robot.getBearingAngle(lr));
-		 * 
-		 * ddr.setAngularSpeed(0.2); putRequest(ddr); try { Thread.sleep(10000);
-		 * } catch (InterruptedException e) { // TODO Auto-generated catch block
-		 * e.printStackTrace(); } ddr.setAngularSpeed(0); putRequest(ddr);
-		 */
-		// TESTCODE//
 
 	}
 
-	private void calculateAndMove(LocalizationResponse robotLR,
-			LocalizationResponse nextLR) throws Exception {
+	private boolean hasReachedGoal(LocalizationResponse robotLR, Position next) {
+		Position robotPos = new Position(robotLR.getPosition());
+		
+		//TODO 
+		return robotPos.getDistanceTo(next) <= 1 && (i > mapList.size()*0.8);
+	}
+
+	private void calculateAndMove(LocalizationResponse robotLR, Position nextPos)
+			throws Exception {
 
 		double targetDistance = 1;
 
@@ -151,7 +185,7 @@ public class LekRobot {
 
 			robot.getResponse(robotLR);
 			Position robotPos = new Position(robotLR.getPosition());
-			Position nextPos = new Position(nextLR.getPosition());
+			// Position nextPos = new Position(nextLR.getPosition());
 			double robotHeading = getBearingAngle(robotLR);
 			targetDistance = robotPos.getDistanceTo(nextPos);
 			double targetAngle = Math.toDegrees(robotPos.getBearingTo(nextPos));
