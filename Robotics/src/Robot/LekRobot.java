@@ -33,6 +33,9 @@ public class LekRobot {
 	private ObjectMapper mapper;
 	private List<Map<String, Object>> mapList;
 
+	private static final double SPEED_X = -0.000148148148148;
+	private static final double SPEED_Y = 0.00222222222222;
+
 	public LekRobot(String host, int port) {
 		this.host = host;
 		this.port = port;
@@ -185,34 +188,32 @@ public class LekRobot {
 			double angleDiff = calculateAngleDiff(robotHeading, targetAngle);
 
 			DifferentialDriveRequest ddr = new DifferentialDriveRequest();
-			
-			
-//			if(Math.abs(angleDiff) > 90) {
-//				if(angleDiff > 90) {
-//					angle = rescaleAngle(angle);
-//				} else {
-//					angle = 2;
-//				}
-//			}else if(Math.abs(angleDiff) < 30) {
-//				angle = 0;
-//			} else if(Math.abs(angleDiff) < 90) {
-//				if(angleDiff > 90) {
-//					angle = -0.6;
-//				} else {
-//					angle = 6;
-//				}
-//			} else if()
-			
-			
-			speed = -0.000148148148148*(angleDiff*angleDiff) + 0.00222222222222*angleDiff +1;
-			if(Math.abs(angleDiff) > 90 ) {
+
+			// if(Math.abs(angleDiff) > 90) {
+			// if(angleDiff > 90) {
+			// angle = rescaleAngle(angle);
+			// } else {
+			// angle = 2;
+			// }
+			// }else if(Math.abs(angleDiff) < 30) {
+			// angle = 0;
+			// } else if(Math.abs(angleDiff) < 90) {
+			// if(angleDiff > 90) {
+			// angle = -0.6;
+			// } else {
+			// angle = 6;
+			// }
+			// } else if()
+
+			speed = SPEED_X * (angleDiff * angleDiff) + SPEED_Y * angleDiff + 1;
+			if (Math.abs(angleDiff) > 90) {
 				speed = 0;
 			}
 			angle = degreesToRadians(angleDiff);
-			
-			System.out.println("Angle: "+angleDiff);
-//			System.out.println("Speed: "+speed);
-//			System.out.println("Angle: " + angle);
+
+			System.out.println("Angle: " + angleDiff);
+			// System.out.println("Speed: "+speed);
+			// System.out.println("Angle: " + angle);
 			// if (Math.abs(angleDiff) > 2) {
 			// ddr.setLinearSpeed(0);
 			// speed = 0;
@@ -263,8 +264,8 @@ public class LekRobot {
 		// System.out.println("speed :" + speed + " and anglespeed: " + angle);
 	}
 
-	private double degreesToRadians(double angle) {		
-		return angle*(Math.PI/180);
+	private double degreesToRadians(double angle) {
+		return angle * (Math.PI / 180);
 	}
 
 	private double calculateAngleDiff(double firstAngle, double secondAngle) {
