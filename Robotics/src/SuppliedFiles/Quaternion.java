@@ -1,5 +1,6 @@
 package SuppliedFiles;
 
+
 /**
  * Quaternions and some operations on them.
  * The objects are immutable, i.e. once created, they can not be altered.

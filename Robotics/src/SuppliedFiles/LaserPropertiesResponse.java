@@ -1,4 +1,5 @@
 package SuppliedFiles;
+
 import java.util.Map;
 
 public class LaserPropertiesResponse implements Response
@@ -35,6 +36,29 @@ public class LaserPropertiesResponse implements Response
       return new double[] {x, y, z};
    }
 
+   /**
+    * @return Angle of the first beam in radians
+    */
+   public double getStartAngle()
+   {
+      return (Double)data.get("StartAngle");
+   }
+   
+   /**
+    * @return Angle of the last beam in radians
+    */
+   public double getEndAngle()
+   {
+      return (Double)data.get("EndAngle");
+   }
+   
+   /**
+    *  @return Angle increment in radians
+    */
+   public double getAngleIncrement()
+   {
+      return (Double)data.get("AngleIncrement");
+   }
    public String getPath()
    {
       return "/lokarria/laser/properties";
