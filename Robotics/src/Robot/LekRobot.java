@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -66,6 +67,7 @@ public class LekRobot {
 			robot.run();
 		} catch (Exception e) {
 			System.err.println("Something went wrong: " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
 
@@ -79,13 +81,13 @@ public class LekRobot {
 			tempLR.setData(mapList.get(mapListIndex + 1));
 			Position nextCP = new Position(tempLR.getPosition());
 
-			while(isShortDistance(robotLR, currentCP, nextCP)) {
-					mapListIndex++;
+			while (isShortDistance(robotLR, currentCP, nextCP)) {
+				mapListIndex++;
 
-					tempLR.setData(mapList.get(mapListIndex));
-					nextCP = new Position(tempLR.getPosition());
+				tempLR.setData(mapList.get(mapListIndex));
+				nextCP = new Position(tempLR.getPosition());
 			}
-			
+
 			return nextCP;
 		}
 		return null;
@@ -94,20 +96,19 @@ public class LekRobot {
 	private boolean isShortDistance(LocalizationResponse robotLR,
 			Position currentCP, Position nextCP) {
 		Position robotPos = new Position(robotLR.getPosition());
-		
+
 		double currentCPDistance = robotPos.getDistanceTo(currentCP);
 		double nextCPDistance = robotPos.getDistanceTo(nextCP);
 
 		double currentCPAngle = robotPos.getBearingTo(currentCP);
 		double nextCPAngle = robotPos.getBearingTo(nextCP);
-		
-		if(mapListIndex >= mapList.size()) {
+
+		if (mapListIndex > mapList.size()) {
 			return false;
-		}  
-		
+		}
+
 		return (Math.abs(currentCPDistance - nextCPDistance) < 1)
-				&& (Math.abs(calculateAngleDiff(currentCPAngle,
-						nextCPAngle)) < 10);
+				&& (Math.abs(calculateAngleDiff(currentCPAngle, nextCPAngle)) < 10);
 	}
 
 	public List<Map<String, Object>> readFile(String filePath)
@@ -129,11 +130,11 @@ public class LekRobot {
 			nextLR.setData(mapList.get(mapListIndex));
 
 			Position nextCP = carrotPlanning(robotLR, nextLR);
-			
+
 			if (nextCP != null) {
 				calculateAndMove(robotLR, nextCP);
 			}
-			
+
 			mapListIndex++;
 			if (hasReachedGoal(new Position(robotLR.getPosition()), nextCP)) {
 				mapListIndex = mapList.size() + 1;
@@ -155,7 +156,8 @@ public class LekRobot {
 	}
 
 	private boolean hasReachedGoal(Position robotPos, Position next) {
-		return robotPos.getDistanceTo(next) <= 1 && (mapListIndex > mapList.size() * 0.8);
+		return robotPos.getDistanceTo(next) <= 1
+				&& (mapListIndex > mapList.size() * 0.8);
 	}
 
 	private void calculateAndMove(LocalizationResponse robotLR, Position nextCP)
@@ -173,51 +175,80 @@ public class LekRobot {
 			double robotHeading = robotLR.getHeadingAngle() * (180 / Math.PI);
 
 			targetDistance = robotPos.getDistanceTo(nextCP);
-			
+
 			double targetAngle = Math.toDegrees(robotPos.getBearingTo(nextCP));
+
 			if (targetAngle < 0) {
 				targetAngle += 360;
 			}
 
-			double angleDiff = calculateAngleDiff(robotHeading,
-					targetAngle);
+			double angleDiff = calculateAngleDiff(robotHeading, targetAngle);
 
 			DifferentialDriveRequest ddr = new DifferentialDriveRequest();
-
-			if (Math.abs(angleDiff) > 2) {
-				ddr.setLinearSpeed(0);
+			
+			
+//			if(Math.abs(angleDiff) > 90) {
+//				if(angleDiff > 90) {
+//					angle = rescaleAngle(angle);
+//				} else {
+//					angle = 2;
+//				}
+//			}else if(Math.abs(angleDiff) < 30) {
+//				angle = 0;
+//			} else if(Math.abs(angleDiff) < 90) {
+//				if(angleDiff > 90) {
+//					angle = -0.6;
+//				} else {
+//					angle = 6;
+//				}
+//			} else if()
+			
+			
+			speed = -0.000148148148148*(angleDiff*angleDiff) + 0.00222222222222*angleDiff +1;
+			if(Math.abs(angleDiff) > 90 ) {
 				speed = 0;
-				ddr.setAngularSpeed(0.0);
-				angle = 0;
-				if (angleDiff < 0) {
-					// RIGHT
-					ddr.setAngularSpeed(0.6);
-					angle = 0.6;
-				} else {
-					// LEFT
-					ddr.setAngularSpeed(-0.6);
-					angle = -0.6;
-				}
-				if (angleDiff > 40 || angleDiff < -40) {
-					if (angleDiff > 0) {
-						ddr.setAngularSpeed(-2);
-						angle = -2;
-					} else {
-						ddr.setAngularSpeed(2);
-						angle = 2;
-					}
-					ddr.setLinearSpeed(0.0);
-					speed = 0.2;
-				} else if (Math.abs(angleDiff) < 30) {
-					ddr.setLinearSpeed(1.0);
-					speed = 1;
-				}
-			} else {
-				ddr.setAngularSpeed(0.0);
-				angle = 0;
-				ddr.setLinearSpeed(1.0);
-				speed = 1;
 			}
+			angle = degreesToRadians(angleDiff);
+			
+			System.out.println("Angle: "+angleDiff);
+//			System.out.println("Speed: "+speed);
+//			System.out.println("Angle: " + angle);
+			// if (Math.abs(angleDiff) > 2) {
+			// ddr.setLinearSpeed(0);
+			// speed = 0;
+			// ddr.setAngularSpeed(0.0);
+			// angle = 0;
+			// if (angleDiff < 0) {
+			// // RIGHT
+			// ddr.setAngularSpeed(0.6);
+			// angle = 0.6;
+			// } else {
+			// // LEFT
+			// ddr.setAngularSpeed(-0.6);
+			// angle = -0.6;
+			// }
+			// if (angleDiff > 90 || angleDiff < -90) {
+			// if (angleDiff > 0) {
+			// ddr.setAngularSpeed(-2);
+			// angle = -2;
+			// } else {
+			// ddr.setAngularSpeed(2);
+			// angle = 2;
+			// }
+			// ddr.setLinearSpeed(0.0);
+			// speed = 0.2;
+			// } else if (Math.abs(angleDiff) < 30) {
+			// ddr.setLinearSpeed(1.0);
+			// speed = 1;
+			// }
+			// } else {
+			// ddr.setAngularSpeed(0.0);
+			// angle = 0;
+			// ddr.setLinearSpeed(1.0);
+			// speed = 1;
+			// }
+			ddr.setLinearSpeed(speed);
+			ddr.setAngularSpeed(-angle);
 			putRequest(ddr);
 
 			// System.out.println("robotPOS: " + robotPos.getX() + ", " +
@@ -232,8 +263,11 @@ public class LekRobot {
 		// System.out.println("speed :" + speed + " and anglespeed: " + angle);
 	}
 
-	private double calculateAngleDiff(double firstAngle,
-			double secondAngle) {
+	private double degreesToRadians(double angle) {		
+		return angle*(Math.PI/180);
+	}
+
+	private double calculateAngleDiff(double firstAngle, double secondAngle) {
 		double diffAngle = (firstAngle - secondAngle) + 180;
 		diffAngle = (diffAngle / 360.0);
 		diffAngle = ((diffAngle - Math.floor(diffAngle)) * 360.0) - 180;
