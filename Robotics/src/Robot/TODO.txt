@@ -1,0 +1,18 @@
+TODO
+---------------------
+
+Fixa ta en punkt en bit fram (inom fast vinkel om möjligt)
+
+--------
+
+Ta ny punkt vid lämplig tidpunkt!
+
+--------
+
+Fixa en collisiondetector (laser, vinklar och hård sväng)
+
+--------
+
+Fixa variabel speed (ax^2+bx+c)
+
+--------
