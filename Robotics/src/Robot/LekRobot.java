@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 
 public class LekRobot {
 
-	private int i = 0;
+	private int mapListIndex = 0;
 	private String host;
 	private int port;
 	private LekRobot robot;
@@ -49,65 +49,65 @@ public class LekRobot {
 		try {
 			mapList = readFile(filePath);
 		} catch (JsonParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.err.println(e.getMessage());
 		} catch (JsonMappingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.err.println(e.getMessage());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.err.println(e.getMessage());
 		}
 	}
 
 	public static void main(String[] args) {
-
 		LekRobot robot = new LekRobot("http://127.0.0.1", 50000,
 				"Path-around-table-and-back.json");
-		try {
-			System.out.println("START");
-			robot.start();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 
+		System.out.println("START");
+		try {
+			robot.run();
+		} catch (Exception e) {
+			System.err.println("Something went wrong: " + e.getMessage());
+		}
 	}
 
-	private Position checkPos(Position robotPos, Position nextPos) {
-		Position startPos = nextPos;
+	private Position carrotPlanning(LocalizationResponse robotLR,
+			LocalizationResponse nextLR) {
+		Position currentCP = new Position(nextLR.getPosition());
 
-		LocalizationResponse lr = new LocalizationResponse();
+		LocalizationResponse tempLR = new LocalizationResponse();
 
-		if (mapList.size() > i + 1) {
-			lr.setData(mapList.get(i + 1));
-			Position nextPosition = new Position(lr.getPosition());
+		if (mapList.size() > mapListIndex + 1) {
+			tempLR.setData(mapList.get(mapListIndex + 1));
+			Position nextCP = new Position(tempLR.getPosition());
 
-			while (isShortDistance(robotPos, startPos, nextPosition)) {
-				if (mapList.size() > i + 1) {
-					i++;
+			while(isShortDistance(robotLR, currentCP, nextCP)) {
+					mapListIndex++;
 
-					lr.setData(mapList.get(i));
-					nextPosition = new Position(lr.getPosition());
-				} else {
-					break;
-				}
+					tempLR.setData(mapList.get(mapListIndex));
+					nextCP = new Position(tempLR.getPosition());
 			}
-			return nextPosition;
+			
+			return nextCP;
 		}
 		return null;
 	}
 
-	private boolean isShortDistance(Position robotPos, Position startPos,
-			Position nextPos) {
-		double one = robotPos.getDistanceTo(startPos);
-		double two = robotPos.getDistanceTo(nextPos);
+	private boolean isShortDistance(LocalizationResponse robotLR,
+			Position currentCP, Position nextCP) {
+		Position robotPos = new Position(robotLR.getPosition());
+		
+		double currentCPDistance = robotPos.getDistanceTo(currentCP);
+		double nextCPDistance = robotPos.getDistanceTo(nextCP);
 
-		double startAngle = robotPos.getBearingTo(startPos);
-		double nextAngle = robotPos.getBearingTo(nextPos);
-
-		return (Math.abs(one - two) < 1)
-				&& (Math.abs(startAngle - nextAngle) > 10);
+		double currentCPAngle = robotPos.getBearingTo(currentCP);
+		double nextCPAngle = robotPos.getBearingTo(nextCP);
+		
+		if(mapListIndex >= mapList.size()) {
+			return false;
+		}  
+		
+		return (Math.abs(currentCPDistance - nextCPDistance) < 1)
+				&& (Math.abs(calculateAngleDiff(currentCPAngle,
+						nextCPAngle)) < 10);
 	}
 
 	public List<Map<String, Object>> readFile(String filePath)
@@ -117,43 +117,30 @@ public class LekRobot {
 				.constructCollectionType(List.class, Map.class));
 	}
 
-	public void start() throws Exception {
-
-		/*
-		 * Is path defined? if yes continue with algorithm
-		 * 
-		 * 1. check robot position 2. check length and angle towards next
-		 * position 3. calculate angular and linear speed 4. run for calculated
-		 * seconds
-		 * 
-		 * (loop) check #2 again to see if we are close to target - if close
-		 * track next target position and run loop - if not -> continue loop (1
-		 * -> 2 -> 3 -> 4)
-		 */
+	public void run() throws Exception {
 		long timeStart = System.currentTimeMillis();
 		System.out.println("Number of path coordinates: " + mapList.size());
 
-		i = 0;
+		mapListIndex = 0;
 		do {
-
 			LocalizationResponse robotLR = new LocalizationResponse();
 			LocalizationResponse nextLR = new LocalizationResponse();
 			robot.getResponse(robotLR);
-			nextLR.setData(mapList.get(i));
+			nextLR.setData(mapList.get(mapListIndex));
 
-			Position next = checkPos(new Position(robotLR.getPosition()),
-					new Position(nextLR.getPosition()));
-			if (next != null) {
-				calculateAndMove(robotLR, next);
-			}
-			i++;
-			if(hasReachedGoal(robotLR, next)) {
-				i = mapList.size()+1;
-			}
-			// System.out.println("MAPCOUNT: " + i);
+			Position nextCP = carrotPlanning(robotLR, nextLR);
 			
+			if (nextCP != null) {
+				calculateAndMove(robotLR, nextCP);
+			}
+			
+			mapListIndex++;
+			if (hasReachedGoal(new Position(robotLR.getPosition()), nextCP)) {
+				mapListIndex = mapList.size() + 1;
+			}
+			System.out.println("MAPCOUNT: " + mapListIndex);
 
-		} while (mapList.size() > i);
+		} while (mapList.size() > mapListIndex);
 
 		DifferentialDriveRequest ddr = new DifferentialDriveRequest();
 		ddr.setLinearSpeed(0);
@@ -167,14 +154,11 @@ public class LekRobot {
 
 	}
 
-	private boolean hasReachedGoal(LocalizationResponse robotLR, Position next) {
-		Position robotPos = new Position(robotLR.getPosition());
-		
-		//TODO 
-		return robotPos.getDistanceTo(next) <= 1 && (i > mapList.size()*0.8);
+	private boolean hasReachedGoal(Position robotPos, Position next) {
+		return robotPos.getDistanceTo(next) <= 1 && (mapListIndex > mapList.size() * 0.8);
 	}
 
-	private void calculateAndMove(LocalizationResponse robotLR, Position nextPos)
+	private void calculateAndMove(LocalizationResponse robotLR, Position nextCP)
 			throws Exception {
 
 		double targetDistance = 1;
@@ -185,25 +169,17 @@ public class LekRobot {
 
 			robot.getResponse(robotLR);
 			Position robotPos = new Position(robotLR.getPosition());
-			// Position nextPos = new Position(nextLR.getPosition());
-			double robotHeading = getBearingAngle(robotLR);
-			targetDistance = robotPos.getDistanceTo(nextPos);
-			double targetAngle = Math.toDegrees(robotPos.getBearingTo(nextPos));
+			// TODO is it ok???
+			double robotHeading = robotLR.getHeadingAngle() * (180 / Math.PI);
+
+			targetDistance = robotPos.getDistanceTo(nextCP);
+			
+			double targetAngle = Math.toDegrees(robotPos.getBearingTo(nextCP));
 			if (targetAngle < 0) {
 				targetAngle += 360;
 			}
 
-			/*
-			 * 1. Calculate angle and speed (depending on target distance &
-			 * angle) 2. Putrequest 3. Sleep ms (30ms?) 4. goto 1
-			 */
-
-			// double angleDiff = robotHeading - targetAngle;
-			// if (angleDiff > 180) {
-			// angleDiff -= 360;
-			// }
-
-			double angleDiff = calculateDifferenceBetweenAngles(robotHeading,
+			double angleDiff = calculateAngleDiff(robotHeading,
 					targetAngle);
 
 			DifferentialDriveRequest ddr = new DifferentialDriveRequest();
@@ -253,15 +229,15 @@ public class LekRobot {
 			// System.out.println("robot angle " + robotHeading);
 			// System.out.println("angle diff " + angleDiff);
 		}
-		System.out.println("speed :" + speed + " and anglespeed: " + angle);
+		// System.out.println("speed :" + speed + " and anglespeed: " + angle);
 	}
 
-	private double calculateDifferenceBetweenAngles(double firstAngle,
+	private double calculateAngleDiff(double firstAngle,
 			double secondAngle) {
-		double diffangle = (firstAngle - secondAngle) + 180;
-		diffangle = (diffangle / 360.0);
-		diffangle = ((diffangle - Math.floor(diffangle)) * 360.0) - 180;
-		return diffangle;
+		double diffAngle = (firstAngle - secondAngle) + 180;
+		diffAngle = (diffAngle / 360.0);
+		diffAngle = ((diffAngle - Math.floor(diffAngle)) * 360.0) - 180;
+		return diffAngle;
 	}
 
 	/**
@@ -322,16 +298,5 @@ public class LekRobot {
 		in.close();
 
 		return r;
-	}
-
-	double getBearingAngle(LocalizationResponse lr) {
-		double e[] = lr.getOrientation();
-
-		double angle = 2 * Math.atan2(e[3], e[0]);
-		double positiveAngle = angle * 180 / Math.PI;
-		// if (positiveAngle < 0) {
-		// positiveAngle += 360;
-		// }
-		return positiveAngle;
 	}
 }
