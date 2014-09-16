@@ -86,7 +86,7 @@ public class LekRobot {
 
 			while (isShortDistance(robotLR, currentCP, nextCP)) {
 				mapListIndex++;
-
+				System.out.println("MAPLISTINDEX (++): " + mapListIndex);
 				tempLR.setData(mapList.get(mapListIndex));
 				nextCP = new Position(tempLR.getPosition());
 			}
@@ -105,12 +105,12 @@ public class LekRobot {
 
 		double currentCPAngle = robotPos.getBearingTo(currentCP);
 		double nextCPAngle = robotPos.getBearingTo(nextCP);
-
-		if (mapListIndex > mapList.size()) {
+		System.out.println("MAPLISTINDEX isShortDistance: " + mapListIndex);
+		if (mapList.size() < mapListIndex) {
 			return false;
 		}
 
-		return (Math.abs(currentCPDistance - nextCPDistance) < 1)
+		return (Math.abs(currentCPDistance - nextCPDistance) < 0.3)
 				&& (Math.abs(calculateAngleDiff(currentCPAngle, nextCPAngle)) < 10);
 	}
 
@@ -210,8 +210,12 @@ public class LekRobot {
 				speed = 0;
 			}
 			angle = degreesToRadians(angleDiff);
+			if (angle > 0)
+				angle *= 2;
+			else 
+				angle *= 2;
 
-			System.out.println("Angle: " + angleDiff);
+//			System.out.println("Angle: " + angleDiff);
 			// System.out.println("Speed: "+speed);
 			// System.out.println("Angle: " + angle);
 			// if (Math.abs(angleDiff) > 2) {
