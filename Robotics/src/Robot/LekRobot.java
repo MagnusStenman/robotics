@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import SuppliedFiles.DifferentialDriveRequest;
+import SuppliedFiles.LaserEchoesResponse;
 import SuppliedFiles.LocalizationResponse;
 import SuppliedFiles.Position;
 import SuppliedFiles.Request;
@@ -165,15 +166,14 @@ public class LekRobot {
 	private void calculateAndMove(LocalizationResponse robotLR, Position nextCP)
 			throws Exception {
 
-		double targetDistance = 1;
-
-		double speed = 0, angle = 0;
+		double targetDistance = 1; //init value
+		double speed = 0;
+		double angle = 0;
 
 		while (targetDistance > DIST_TO_TARGET_MIN) {
 
 			robot.getResponse(robotLR);
 			Position robotPos = new Position(robotLR.getPosition());
-			// TODO is it ok???
 			double robotHeading = robotLR.getHeadingAngle() * (180 / Math.PI);
 
 			targetDistance = robotPos.getDistanceTo(nextCP);
@@ -192,18 +192,83 @@ public class LekRobot {
 			if (Math.abs(angleDiff) > 90) {
 				speed = 0;
 			}
-			angle = degreesToRadians(angleDiff);
-			if (angle > 0)
-				angle *= 2;
-			else 
-				angle *= 2;
+			angle = degreesToRadians(angleDiff) * 2;
 
 			ddr.setLinearSpeed(speed);
 			ddr.setAngularSpeed(-angle);
 			
+			ddr = collisionDetection(ddr, angle);
+			
 			putRequest(ddr);
 
 		}
+	}
+
+	private DifferentialDriveRequest collisionDetection(
+			DifferentialDriveRequest ddr, double angle) throws Exception {
+		
+		LaserEchoesResponse ler = new LaserEchoesResponse();
+		robot.getResponse(ler);
+		double[] echoes = ler.getEchoes();
+		
+		boolean left = false, right = false, front = false;
+		
+		for (int i=45;i<225;i++) {
+			if (echoes[i] < 0.5) {
+				if (45 < i && i < 110) {
+					right = true;
+				}
+			}
+		}
+		for (int i=45;i<225;i++) {
+			if (echoes[i] < 0.5) {
+				if (160 < i && i < 225) {
+					left = true;
+				}
+			}
+		}
+		for (int i=45;i<225;i++) {
+			if (echoes[i] < 0.5) {
+				if (110 < i && i < 160) {
+					front = true;
+				}			
+			}			
+		}
+			
+		if (left && right && !front) {
+			ddr.setAngularSpeed(0);
+			putRequest(ddr);
+			Thread.sleep(100);
+		} else if (left && !right && front) {
+			ddr.setLinearSpeed(0);
+			ddr.setAngularSpeed(-1);
+			putRequest(ddr);
+			Thread.sleep(100);
+		} else if (!left && right && front) {
+			ddr.setLinearSpeed(0);
+			ddr.setAngularSpeed(1);
+			putRequest(ddr);
+			Thread.sleep(100);
+		} else if (!left && !right && front) {
+			ddr.setAngularSpeed(angle);
+			ddr.setLinearSpeed(0);
+			putRequest(ddr);
+			Thread.sleep(100);
+		}
+		
+		String debug = "";
+		if (left)
+			debug += " [LEFT] ";
+		if (right)
+			debug += " [RIGHT] ";
+		if (front)
+			debug += " [FRONT] ";
+		
+		if (debug != "") {
+			System.out.println(debug);
+		}
+		
+		return ddr;
 	}
 
 	private double degreesToRadians(double angle) {
