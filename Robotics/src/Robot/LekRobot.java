@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -26,6 +25,11 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 
 public class LekRobot {
 
+	private static final double DIST_TO_TARGET_MIN = 0.5;
+	private static final double SPEED_X = -0.000148148148148;
+	private static final double SPEED_Y = 0.00222222222222;
+	private static final double DIST_TO_NEXT_CP = 0.3;
+	private static final double ANGLE_TO_NEXT_CP = 10;
 	private int mapListIndex = 0;
 	private String host;
 	private int port;
@@ -33,8 +37,6 @@ public class LekRobot {
 	private ObjectMapper mapper;
 	private List<Map<String, Object>> mapList;
 
-	private static final double SPEED_X = -0.000148148148148;
-	private static final double SPEED_Y = 0.00222222222222;
 
 	public LekRobot(String host, int port) {
 		this.host = host;
@@ -86,7 +88,6 @@ public class LekRobot {
 
 			while (isShortDistance(robotLR, currentCP, nextCP)) {
 				mapListIndex++;
-				System.out.println("MAPLISTINDEX (++): " + mapListIndex);
 				tempLR.setData(mapList.get(mapListIndex));
 				nextCP = new Position(tempLR.getPosition());
 			}
@@ -105,13 +106,12 @@ public class LekRobot {
 
 		double currentCPAngle = robotPos.getBearingTo(currentCP);
 		double nextCPAngle = robotPos.getBearingTo(nextCP);
-		System.out.println("MAPLISTINDEX isShortDistance: " + mapListIndex);
 		if (mapList.size() < mapListIndex) {
 			return false;
 		}
 
-		return (Math.abs(currentCPDistance - nextCPDistance) < 0.3)
-				&& (Math.abs(calculateAngleDiff(currentCPAngle, nextCPAngle)) < 10);
+		return (Math.abs(currentCPDistance - nextCPDistance) < DIST_TO_NEXT_CP)
+				&& (Math.abs(calculateAngleDiff(currentCPAngle, nextCPAngle)) < ANGLE_TO_NEXT_CP);
 	}
 
 	public List<Map<String, Object>> readFile(String filePath)
@@ -142,7 +142,6 @@ public class LekRobot {
 			if (hasReachedGoal(new Position(robotLR.getPosition()), nextCP)) {
 				mapListIndex = mapList.size() + 1;
 			}
-			System.out.println("MAPCOUNT: " + mapListIndex);
 
 		} while (mapList.size() > mapListIndex);
 
@@ -170,7 +169,7 @@ public class LekRobot {
 
 		double speed = 0, angle = 0;
 
-		while (targetDistance > 0.5) {
+		while (targetDistance > DIST_TO_TARGET_MIN) {
 
 			robot.getResponse(robotLR);
 			Position robotPos = new Position(robotLR.getPosition());
@@ -189,22 +188,6 @@ public class LekRobot {
 
 			DifferentialDriveRequest ddr = new DifferentialDriveRequest();
 
-			// if(Math.abs(angleDiff) > 90) {
-			// if(angleDiff > 90) {
-			// angle = rescaleAngle(angle);
-			// } else {
-			// angle = 2;
-			// }
-			// }else if(Math.abs(angleDiff) < 30) {
-			// angle = 0;
-			// } else if(Math.abs(angleDiff) < 90) {
-			// if(angleDiff > 90) {
-			// angle = -0.6;
-			// } else {
-			// angle = 6;
-			// }
-			// } else if()
-
 			speed = SPEED_X * (angleDiff * angleDiff) + SPEED_Y * angleDiff + 1;
 			if (Math.abs(angleDiff) > 90) {
 				speed = 0;
@@ -215,57 +198,12 @@ public class LekRobot {
 			else 
 				angle *= 2;
 
-//			System.out.println("Angle: " + angleDiff);
-			// System.out.println("Speed: "+speed);
-			// System.out.println("Angle: " + angle);
-			// if (Math.abs(angleDiff) > 2) {
-			// ddr.setLinearSpeed(0);
-			// speed = 0;
-			// ddr.setAngularSpeed(0.0);
-			// angle = 0;
-			// if (angleDiff < 0) {
-			// // RIGHT
-			// ddr.setAngularSpeed(0.6);
-			// angle = 0.6;
-			// } else {
-			// // LEFT
-			// ddr.setAngularSpeed(-0.6);
-			// angle = -0.6;
-			// }
-			// if (angleDiff > 90 || angleDiff < -90) {
-			// if (angleDiff > 0) {
-			// ddr.setAngularSpeed(-2);
-			// angle = -2;
-			// } else {
-			// ddr.setAngularSpeed(2);
-			// angle = 2;
-			// }
-			// ddr.setLinearSpeed(0.0);
-			// speed = 0.2;
-			// } else if (Math.abs(angleDiff) < 30) {
-			// ddr.setLinearSpeed(1.0);
-			// speed = 1;
-			// }
-			// } else {
-			// ddr.setAngularSpeed(0.0);
-			// angle = 0;
-			// ddr.setLinearSpeed(1.0);
-			// speed = 1;
-			// }
 			ddr.setLinearSpeed(speed);
 			ddr.setAngularSpeed(-angle);
+			
 			putRequest(ddr);
 
-			// System.out.println("robotPOS: " + robotPos.getX() + ", " +
-			// robotPos.getY());
-			// System.out.println("nextPOS: " + nextPos.getX() + ", " +
-			// nextPos.getY());
-			// System.out.println("target distance " + targetDistance);
-			// System.out.println("target angle " + targetAngle);
-			// System.out.println("robot angle " + robotHeading);
-			// System.out.println("angle diff " + angleDiff);
 		}
-		// System.out.println("speed :" + speed + " and anglespeed: " + angle);
 	}
 
 	private double degreesToRadians(double angle) {
@@ -331,6 +269,7 @@ public class LekRobot {
 				connection.getInputStream()));
 
 		// map it to a Java Map
+		@SuppressWarnings("unchecked")
 		Map<String, Object> data = mapper.readValue(in, Map.class);
 		r.setData(data);
 
