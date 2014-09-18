@@ -1,27 +1,5 @@
-	private Position checkPos(Position robotPos, Position nextPos) {
-		Position startPos = nextPos;
-	
-		LocalizationResponse lr = new LocalizationResponse();
-		lr.setData(mapList.get(i+1));
-		Position nextPosition = new Position(lr.getPosition());
-		
-		while(isShortDistance(robotPos, startPos, nextPosition)) {
-			if(mapList.size() > i+1) {
-			i++;
-		
-			lr.setData(mapList.get(i));
-			nextPosition = new Position(lr.getPosition());
-			} else {
-				break;
-			}
-		}
-		return nextPosition;
-	}
-
-		private boolean isShortDistance(Position robotPos, Position startPos,
-			Position nextPos) {
-		double one = robotPos.getDistanceTo(startPos);
-		double two = robotPos.getDistanceTo(nextPos);
-
-		return Math.abs(one - two) < 1;
-	}
+avoidance
+40 grader
+0.8 längd
+0.2 speed
+1.6 angular
