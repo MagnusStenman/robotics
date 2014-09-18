@@ -38,7 +38,6 @@ public class LekRobot {
 	private ObjectMapper mapper;
 	private List<Map<String, Object>> mapList;
 
-
 	public LekRobot(String host, int port) {
 		this.host = host;
 		this.port = port;
@@ -107,6 +106,7 @@ public class LekRobot {
 
 		double currentCPAngle = robotPos.getBearingTo(currentCP);
 		double nextCPAngle = robotPos.getBearingTo(nextCP);
+
 		if (mapList.size() < mapListIndex) {
 			return false;
 		}
@@ -151,10 +151,9 @@ public class LekRobot {
 		ddr.setAngularSpeed(0);
 		putRequest(ddr);
 
-		long timeStop = System.currentTimeMillis();
-
-		System.out.println("TIME IT TOOK: "
-				+ new SimpleDateFormat("mm:ss").format(timeStop - timeStart));
+		System.out.println("TIME: "
+				+ new SimpleDateFormat("mm:ss").format(System
+						.currentTimeMillis() - timeStart));
 
 	}
 
@@ -166,7 +165,7 @@ public class LekRobot {
 	private void calculateAndMove(LocalizationResponse robotLR, Position nextCP)
 			throws Exception {
 
-		double targetDistance = 1; //init value
+		double targetDistance = 1; // init value
 		double speed = 0;
 		double angle = 0;
 
@@ -174,150 +173,181 @@ public class LekRobot {
 
 			robot.getResponse(robotLR);
 			Position robotPos = new Position(robotLR.getPosition());
-			double robotHeading = robotLR.getHeadingAngle() * (180 / Math.PI);
-
-			targetDistance = robotPos.getDistanceTo(nextCP);
-
 			double targetAngle = Math.toDegrees(robotPos.getBearingTo(nextCP));
-
-			if (targetAngle < 0) {
-				targetAngle += 360;
-			}
-
+			double robotHeading = robotLR.getHeadingAngle() * (180 / Math.PI);
 			double angleDiff = calculateAngleDiff(robotHeading, targetAngle);
-
-			DifferentialDriveRequest ddr = new DifferentialDriveRequest();
-
-			speed = SPEED_CONSTANT * (angleDiff * angleDiff) + 1;
 			
+			targetDistance = robotPos.getDistanceTo(nextCP);
+			targetAngle = positiveDegrees(targetAngle);
+			
+			DifferentialDriveRequest ddr = new DifferentialDriveRequest();
+			
+
 			if (Math.abs(angleDiff) > 90) {
 				speed = 0;
+			} else {
+				speed = SPEED_CONSTANT * (angleDiff * angleDiff) + 1;
 			}
+
 			angle = degreesToRadians(angleDiff) * 2;
 
 			ddr.setLinearSpeed(speed);
 			ddr.setAngularSpeed(-angle);
-			
-			ddr = collisionDetection(ddr, angle);
+
+			 ddr = collisionDetection(ddr, angle);
+
+			// avoidance
+			// 40 grader
+			// 0.8 längd
+			// 0.2 speed
+			// 1.6 angular
 			
 			putRequest(ddr);
-//			System.out.println("Current SPEED: " + speed);
+			// System.out.println("Current SPEED: " + speed);
+		}
+	}
+
+	private double positiveDegrees(double targetAngle) {
+		if (targetAngle < 0) {
+			targetAngle += 360;
+		}
+		return targetAngle;
+	}
+
+	private double turnHeading(double angle) {
+		if (angle > 0) {
+			return -1;
+		} else {
+			return 1;
 		}
 	}
 
 	private DifferentialDriveRequest collisionDetection(
 			DifferentialDriveRequest ddr, double angle) throws Exception {
+
+		
+//		LaserEchoesResponse ler = new LaserEchoesResponse();
+//
+//		boolean left = true, right = true, front = true;
+//
+//		while (left || right || front) {
+//			robot.getResponse(ler);
+//			double[] echoes = ler.getEchoes();
+//			left = false;
+//			right = false;
+//			front = false;
+//
+//			double Llength = 0;
+//			double Rlength = 0;
+//			double Flength;
+//
+//			for (int i = 45; i < 225; i++) {
+//
+//				if (echoes[i] < 0.4) {
+//					if (45 < i && i < 110) {
+//						Rlength = echoes[i];
+//						right = true;
+//					}
+//				}
+//			}
+//			for (int i = 45; i < 225; i++) {
+//				if (echoes[i] < 0.4) {
+//					if (160 < i && i < 225) {
+//						Llength = echoes[i];
+//						left = true;
+//					}
+//				}
+//			}
+//			for (int i = 45; i < 225; i++) {
+//				if (echoes[i] < 0.5) {
+//					if (110 < i && i < 160) {
+//						Flength = echoes[i];
+//						front = true;
+//					}
+//				}
+//			}
+//
+//			if (left && right && !front) {
+//				ddr.setLinearSpeed(1);
+//				ddr.setAngularSpeed(0);
+//				putRequest(ddr);
+//				// Thread.sleep(100);
+//			} else if (left && !right && front) {
+//				ddr.setLinearSpeed(Llength);
+//				ddr.setAngularSpeed(-(1 - Llength));
+//				putRequest(ddr);
+//				// Thread.sleep(300);
+//				// ddr.setLinearSpeed(1);
+//				// ddr.setAngularSpeed(0);
+//				// putRequest(ddr);
+//				// Thread.sleep(100);
+//			} else if (!left && right && front) {
+//				ddr.setLinearSpeed(Rlength);
+//				ddr.setAngularSpeed(1 - Rlength);
+//				putRequest(ddr);
+//				// Thread.sleep(300);
+//				// ddr.setLinearSpeed(1);
+//				// ddr.setAngularSpeed(0);
+//				// putRequest(ddr);
+//				// Thread.sleep(100);
+//			} else if (!left && !right && front) {
+//				ddr.setLinearSpeed(0);
+//				ddr.setAngularSpeed(1);
+//				putRequest(ddr);
+//				Thread.sleep(1000);
+//			} else if (left && !right && !front) {
+//				ddr.setLinearSpeed(Llength);
+//				ddr.setAngularSpeed(-(1 - Llength));
+//				putRequest(ddr);
+//			} else if (!left && right && !front) {
+//				ddr.setLinearSpeed(Rlength);
+//				ddr.setAngularSpeed(1 - Rlength);
+//				putRequest(ddr);
+//			} else if (left && right && front) {
+//				ddr.setLinearSpeed(0);
+//				ddr.setAngularSpeed(1);
+//				putRequest(ddr);
+//				Thread.sleep(1000);
+//			}
+//
+//			if (Llength > 0) {
+//				System.out.println("LEFT: " + (-(1 - Llength)));
+//				System.out.println("SPEED: " + Llength);
+//				System.out.println();
+//			}
+//			if (Rlength > 0) {
+//				System.out.println("RIGHT: " + (1 - Rlength));
+//				System.out.println("SPEED: " + Rlength);
+//				System.out.println();
+//			}
+//
+//			// putRequest(ddr);
+//
+//			String debug = "";
+//			if (left)
+//				debug += " [LEFT] ";
+//			if (right)
+//				debug += " [RIGHT] ";
+//			if (front)
+//				debug += " [FRONT] ";
+//
+//			if (debug != "") {
+//				// System.out.println(debug);
+//			}
+//		}
 		
 		LaserEchoesResponse ler = new LaserEchoesResponse();
-		
-		boolean left = true, right = true, front = true;
-		
-		while (left || right || front) {
-			robot.getResponse(ler);
-			double[] echoes = ler.getEchoes();
-			left = false;
-			right = false;
-			front = false;
-			
-			double Llength = 0;
-			double Rlength = 0;
-			double Flength;
-			
-			for (int i=45;i<225;i++) {
-				
-				if (echoes[i] < 0.4) {
-					if (45 < i && i < 110) {
-						Rlength = echoes[i];
-						right = true;
-					}
-				}
-			}
-			for (int i=45;i<225;i++) {
-				if (echoes[i] < 0.4) {
-					if (160 < i && i < 225) {
-						Llength = echoes[i];
-						left = true;
-					}
-				}
-			}
-			for (int i=45;i<225;i++) {
-				if (echoes[i] < 0.5) {
-					if (110 < i && i < 160) {
-						Flength = echoes[i];
-						front = true;
-					}			
-				}			
-			}
-			
-			if (left && right && !front) {
-				ddr.setLinearSpeed(1);
-				ddr.setAngularSpeed(0);
-				putRequest(ddr);
-//				Thread.sleep(100);
-			} else if (left && !right && front) {
-				ddr.setLinearSpeed(Llength);
-				ddr.setAngularSpeed(-(1-Llength));
-				putRequest(ddr);
-//				Thread.sleep(300);
-//				ddr.setLinearSpeed(1);
-//				ddr.setAngularSpeed(0);
-//				putRequest(ddr);
-//				Thread.sleep(100);
-			} else if (!left && right && front) {
-				ddr.setLinearSpeed(Rlength);
-				ddr.setAngularSpeed(1-Rlength);
-				putRequest(ddr);
-//				Thread.sleep(300);
-//				ddr.setLinearSpeed(1);
-//				ddr.setAngularSpeed(0);
-//				putRequest(ddr);
-//				Thread.sleep(100);
-			} else if (!left && !right && front) {
-				ddr.setLinearSpeed(0);
-				ddr.setAngularSpeed(1);
-				putRequest(ddr);
-				Thread.sleep(1000);
-			} 
-			else if (left && !right && !front) {
-				ddr.setLinearSpeed(Llength);
-				ddr.setAngularSpeed(-(1-Llength));
-				putRequest(ddr);
-			} else if (!left && right && !front) {
-				ddr.setLinearSpeed(Rlength);
-				ddr.setAngularSpeed(1-Rlength);
-				putRequest(ddr);
-			} else if (left && right && front) {
-				ddr.setLinearSpeed(0);
-				ddr.setAngularSpeed(1);
-				putRequest(ddr);
-				Thread.sleep(1000);
-			}
-			
-			if (Llength > 0) {
-				System.out.println("LEFT: " + (-(1-Llength)));
-				System.out.println("SPEED: " + Llength);
-				System.out.println();
-			}
-			if (Rlength > 0) {
-				System.out.println("RIGHT: " + (1-Rlength));
-				System.out.println("SPEED: " + Rlength);
-				System.out.println();
-			}
-			
-//			putRequest(ddr);
-			
-			String debug = "";
-			if (left)
-				debug += " [LEFT] ";
-			if (right)
-				debug += " [RIGHT] ";
-			if (front)
-				debug += " [FRONT] ";
-			
-			if (debug != "") {
-//				System.out.println(debug);
+		robot.getResponse(ler);
+		double[] test = ler.getEchoes();
+		for (int i = 120; i < 150; i++) {
+			if (test[i] < 0.7) {
+				System.out.println("HEJ");
+				ddr.setAngularSpeed(turnHeading(angle) * 1.4);
+				ddr.setLinearSpeed(0.2);
 			}
 		}
+
+		
 		
 		return ddr;
 	}
