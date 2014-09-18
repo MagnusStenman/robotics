@@ -188,7 +188,9 @@ public class LekRobot {
 
 			DifferentialDriveRequest ddr = new DifferentialDriveRequest();
 
-			speed = SPEED_X * (angleDiff * angleDiff) + SPEED_Y * angleDiff + 1;
+//			speed = SPEED_X * (angleDiff * angleDiff) + SPEED_Y * angleDiff + 1;
+			speed = -0.000123456790123 * (angleDiff * angleDiff) + 1;
+			
 			if (Math.abs(angleDiff) > 90) {
 				speed = 0;
 			}
@@ -241,7 +243,7 @@ public class LekRobot {
 			}
 			
 			if (left && right && !front) {
-				ddr.setLinearSpeed(0.5);
+				ddr.setLinearSpeed(1);
 				ddr.setAngularSpeed(0);
 				putRequest(ddr);
 				Thread.sleep(100);
@@ -250,7 +252,7 @@ public class LekRobot {
 				ddr.setAngularSpeed(-0.7);
 				putRequest(ddr);
 				Thread.sleep(300);
-				ddr.setLinearSpeed(0.5);
+				ddr.setLinearSpeed(1);
 				ddr.setAngularSpeed(0);
 				putRequest(ddr);
 				Thread.sleep(100);
@@ -259,16 +261,25 @@ public class LekRobot {
 				ddr.setAngularSpeed(0.7);
 				putRequest(ddr);
 				Thread.sleep(300);
-				ddr.setLinearSpeed(0.5);
+				ddr.setLinearSpeed(1);
 				ddr.setAngularSpeed(0);
 				putRequest(ddr);
 				Thread.sleep(100);
 			} else if (!left && !right && front) {
-				ddr.setAngularSpeed(angle);
+				ddr.setAngularSpeed(1);
 				ddr.setLinearSpeed(0);
 				putRequest(ddr);
 				Thread.sleep(100);
-			}
+			} 
+//			else if (left && !right && !front) {
+//				ddr.setAngularSpeed(-0.5);
+//				putRequest(ddr);
+//				Thread.sleep(100);
+//			} else if (!left && right && !front) {
+//				ddr.setAngularSpeed(0.5);
+//				putRequest(ddr);
+//				Thread.sleep(100);
+//			}
 //			putRequest(ddr);
 			
 			String debug = "";
