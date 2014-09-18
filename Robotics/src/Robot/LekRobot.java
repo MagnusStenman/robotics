@@ -26,9 +26,9 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 
 public class LekRobot {
 
+	private static final double SPEED_CONSTANT = -0.000123456790123;
+	private static final int DIST_TO_GOAL = 1;
 	private static final double DIST_TO_TARGET_MIN = 0.5;
-	private static final double SPEED_X = -0.000148148148148;
-	private static final double SPEED_Y = 0.00222222222222;
 	private static final double DIST_TO_NEXT_CP = 0.3;
 	private static final double ANGLE_TO_NEXT_CP = 10;
 	private int mapListIndex = 0;
@@ -159,7 +159,7 @@ public class LekRobot {
 	}
 
 	private boolean hasReachedGoal(Position robotPos, Position next) {
-		return robotPos.getDistanceTo(next) <= 1
+		return robotPos.getDistanceTo(next) <= DIST_TO_GOAL
 				&& (mapListIndex > mapList.size() * 0.8);
 	}
 
@@ -188,8 +188,7 @@ public class LekRobot {
 
 			DifferentialDriveRequest ddr = new DifferentialDriveRequest();
 
-//			speed = SPEED_X * (angleDiff * angleDiff) + SPEED_Y * angleDiff + 1;
-			speed = -0.000123456790123 * (angleDiff * angleDiff) + 1;
+			speed = SPEED_CONSTANT * (angleDiff * angleDiff) + 1;
 			
 			if (Math.abs(angleDiff) > 90) {
 				speed = 0;
@@ -202,7 +201,7 @@ public class LekRobot {
 			ddr = collisionDetection(ddr, angle);
 			
 			putRequest(ddr);
-
+//			System.out.println("Current SPEED: " + speed);
 		}
 	}
 
@@ -220,16 +219,23 @@ public class LekRobot {
 			right = false;
 			front = false;
 			
+			double Llength = 0;
+			double Rlength = 0;
+			double Flength;
+			
 			for (int i=45;i<225;i++) {
-				if (echoes[i] < 0.5) {
+				
+				if (echoes[i] < 0.4) {
 					if (45 < i && i < 110) {
+						Rlength = echoes[i];
 						right = true;
 					}
 				}
 			}
 			for (int i=45;i<225;i++) {
-				if (echoes[i] < 0.5) {
+				if (echoes[i] < 0.4) {
 					if (160 < i && i < 225) {
+						Llength = echoes[i];
 						left = true;
 					}
 				}
@@ -237,6 +243,7 @@ public class LekRobot {
 			for (int i=45;i<225;i++) {
 				if (echoes[i] < 0.5) {
 					if (110 < i && i < 160) {
+						Flength = echoes[i];
 						front = true;
 					}			
 				}			
@@ -246,40 +253,57 @@ public class LekRobot {
 				ddr.setLinearSpeed(1);
 				ddr.setAngularSpeed(0);
 				putRequest(ddr);
-				Thread.sleep(100);
+//				Thread.sleep(100);
 			} else if (left && !right && front) {
-				ddr.setLinearSpeed(0);
-				ddr.setAngularSpeed(-0.7);
+				ddr.setLinearSpeed(Llength);
+				ddr.setAngularSpeed(-(1-Llength));
 				putRequest(ddr);
-				Thread.sleep(300);
-				ddr.setLinearSpeed(1);
-				ddr.setAngularSpeed(0);
-				putRequest(ddr);
-				Thread.sleep(100);
+//				Thread.sleep(300);
+//				ddr.setLinearSpeed(1);
+//				ddr.setAngularSpeed(0);
+//				putRequest(ddr);
+//				Thread.sleep(100);
 			} else if (!left && right && front) {
-				ddr.setLinearSpeed(0);
-				ddr.setAngularSpeed(0.7);
+				ddr.setLinearSpeed(Rlength);
+				ddr.setAngularSpeed(1-Rlength);
 				putRequest(ddr);
-				Thread.sleep(300);
-				ddr.setLinearSpeed(1);
-				ddr.setAngularSpeed(0);
-				putRequest(ddr);
-				Thread.sleep(100);
+//				Thread.sleep(300);
+//				ddr.setLinearSpeed(1);
+//				ddr.setAngularSpeed(0);
+//				putRequest(ddr);
+//				Thread.sleep(100);
 			} else if (!left && !right && front) {
-				ddr.setAngularSpeed(1);
 				ddr.setLinearSpeed(0);
+				ddr.setAngularSpeed(1);
 				putRequest(ddr);
-				Thread.sleep(100);
+				Thread.sleep(1000);
 			} 
-//			else if (left && !right && !front) {
-//				ddr.setAngularSpeed(-0.5);
-//				putRequest(ddr);
-//				Thread.sleep(100);
-//			} else if (!left && right && !front) {
-//				ddr.setAngularSpeed(0.5);
-//				putRequest(ddr);
-//				Thread.sleep(100);
-//			}
+			else if (left && !right && !front) {
+				ddr.setLinearSpeed(Llength);
+				ddr.setAngularSpeed(-(1-Llength));
+				putRequest(ddr);
+			} else if (!left && right && !front) {
+				ddr.setLinearSpeed(Rlength);
+				ddr.setAngularSpeed(1-Rlength);
+				putRequest(ddr);
+			} else if (left && right && front) {
+				ddr.setLinearSpeed(0);
+				ddr.setAngularSpeed(1);
+				putRequest(ddr);
+				Thread.sleep(1000);
+			}
+			
+			if (Llength > 0) {
+				System.out.println("LEFT: " + (-(1-Llength)));
+				System.out.println("SPEED: " + Llength);
+				System.out.println();
+			}
+			if (Rlength > 0) {
+				System.out.println("RIGHT: " + (1-Rlength));
+				System.out.println("SPEED: " + Rlength);
+				System.out.println();
+			}
+			
 //			putRequest(ddr);
 			
 			String debug = "";
@@ -291,7 +315,7 @@ public class LekRobot {
 				debug += " [FRONT] ";
 			
 			if (debug != "") {
-				System.out.println(debug);
+//				System.out.println(debug);
 			}
 		}
 		
