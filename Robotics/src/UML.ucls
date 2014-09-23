@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<class-diagram version="1.1.6" icons="true" always-add-relationships="false" generalizations="true" realizations="true" 
+  associations="true" dependencies="false" nesting-relationships="true">  
+  <class id="1" language="java" name="Robot.FinalRobot" project="Robotics" file="/Robotics/src/Robot/FinalRobot.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
+    <position height="513" width="389" x="41" y="37"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <interface id="2" language="java" name="SuppliedFiles.Request" project="Robotics" 
+    file="/Robotics/src/SuppliedFiles/Request.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="99" width="168" x="1087" y="600"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </interface>  
+  <class id="3" language="java" name="SuppliedFiles.TranslationRequest" project="Robotics" 
+    file="/Robotics/src/SuppliedFiles/TranslationRequest.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="171" width="168" x="983" y="37"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="4" language="java" name="SuppliedFiles.LaserPropertiesResponse" project="Robotics" 
+    file="/Robotics/src/SuppliedFiles/LaserPropertiesResponse.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="243" width="188" x="1638" y="37"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <interface id="5" language="java" name="SuppliedFiles.Response" project="Robotics" 
+    file="/Robotics/src/SuppliedFiles/Response.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="117" width="188" x="2094" y="600"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </interface>  
+  <class id="6" language="java" name="SuppliedFiles.DifferentialDriveRequest" project="Robotics" 
+    file="/Robotics/src/SuppliedFiles/DifferentialDriveRequest.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="171" width="193" x="1191" y="37"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="7" language="java" name="SuppliedFiles.Position" project="Robotics" 
+    file="/Robotics/src/SuppliedFiles/Position.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="207" width="174" x="1424" y="37"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="8" language="java" name="SuppliedFiles.Quaternion" project="Robotics" 
+    file="/Robotics/src/SuppliedFiles/Quaternion.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="297" width="224" x="719" y="37"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="9" language="java" name="SuppliedFiles.LaserEchoesResponse" project="Robotics" 
+    file="/Robotics/src/SuppliedFiles/LaserEchoesResponse.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="171" width="188" x="1866" y="37"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="10" language="java" name="SuppliedFiles.RobotCommunication" project="Robotics" 
+    file="/Robotics/src/SuppliedFiles/RobotCommunication.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="171" width="199" x="480" y="37"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="11" language="java" name="SuppliedFiles.InclinometerResponse" project="Robotics" 
+    file="/Robotics/src/SuppliedFiles/InclinometerResponse.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="189" width="188" x="2322" y="37"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="12" language="java" name="SuppliedFiles.LocalizationResponse" project="Robotics" 
+    file="/Robotics/src/SuppliedFiles/LocalizationResponse.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="225" width="188" x="2094" y="37"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="13" language="java" name="SuppliedFiles.BatteryResponse" project="Robotics" 
+    file="/Robotics/src/SuppliedFiles/BatteryResponse.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="189" width="188" x="2550" y="37"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" accessors="true" 
+      visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <realization id="14">    
+    <end type="SOURCE" refId="3"/>    
+    <end type="TARGET" refId="2"/>  
+  </realization>  
+  <realization id="15">    
+    <end type="SOURCE" refId="9"/>    
+    <end type="TARGET" refId="5"/>  
+  </realization>  
+  <realization id="16">    
+    <end type="SOURCE" refId="11"/>    
+    <end type="TARGET" refId="5"/>  
+  </realization>  
+  <realization id="17">    
+    <end type="SOURCE" refId="13"/>    
+    <end type="TARGET" refId="5"/>  
+  </realization>  
+  <realization id="18">    
+    <end type="SOURCE" refId="4"/>    
+    <end type="TARGET" refId="5"/>  
+  </realization>  
+  <realization id="19">    
+    <end type="SOURCE" refId="12"/>    
+    <end type="TARGET" refId="5"/>  
+  </realization>  
+  <realization id="20">    
+    <end type="SOURCE" refId="6"/>    
+    <end type="TARGET" refId="2"/>  
+  </realization>  
+  <classifier-display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+    accessors="true" visibility="true">    
+    <attributes public="true" package="true" protected="true" private="true" static="true"/>    
+    <operations public="true" package="true" protected="true" private="true" static="true"/>  
+  </classifier-display>  
+  <association-display labels="true" multiplicity="true"/>
+</class-diagram>

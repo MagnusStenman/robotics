@@ -1,14 +1,7 @@
 package Robot;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 
@@ -16,44 +9,51 @@ import SuppliedFiles.DifferentialDriveRequest;
 import SuppliedFiles.LaserEchoesResponse;
 import SuppliedFiles.LocalizationResponse;
 import SuppliedFiles.Position;
-import SuppliedFiles.Request;
-import SuppliedFiles.Response;
+import SuppliedFiles.RobotCommunication;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
+/**
+ * FinalRobot class This class controls how the robot moves along a given path
+ * of coordinates.
+ * 
+ * @author Magnus Stenman, dv12msn
+ * @author Christer Jakobsson, dv12cjn
+ *
+ */
 public class FinalRobot {
 
 	private static final double SPEED_CONSTANT = -0.000123456790123;
 	private static final int DIST_TO_GOAL = 1;
-	private static final double DIST_TO_TARGET_MIN = 0.8;
-	private static final double DIST_TO_NEXT_CP = 0.5;
-	private static final double ANGLE_TO_NEXT_CP = 50;
-	private int mapListIndex = 0;
-	private String host;
-	private int port;
-	private FinalRobot robot;
-	private ObjectMapper mapper;
+	private static final double MIN_DIST_TO_TARGET = 0.8;
+	private static final double MAX_DIST_TO_NEXT_CP = 0.5;
+	private static final double MAX_ANGLE_TO_NEXT_CP = 50;
+	private int mapListIndex;
 	private List<Map<String, Object>> mapList;
+	private RobotCommunication robotComm;
+	private Position goalPos;
 
-	public FinalRobot(String host, int port) {
-		this.host = host;
-		this.port = port;
-		this.robot = this;
-
-		mapper = new ObjectMapper();
-	}
-
+	/**
+	 * Constructor for FinalRobot.
+	 * 
+	 * @param host
+	 *            communication IP-address or URL to MRDS
+	 * @param port
+	 *            communication port to MRDS
+	 * @param filePath
+	 *            path to the JSON-file
+	 */
 	public FinalRobot(String host, int port, String filePath) {
-		this.host = host;
-		this.port = port;
-		this.robot = this;
+		robotComm = new RobotCommunication(host, port);
 
-		mapper = new ObjectMapper();
 		try {
 			mapList = readFile(filePath);
+			LocalizationResponse goalLR = new LocalizationResponse();
+			goalLR.setData(mapList.get(mapList.size() - 1));
+			goalPos = new Position(goalLR.getPosition());
 		} catch (JsonParseException e) {
 			System.err.println(e.getMessage());
 		} catch (JsonMappingException e) {
@@ -63,41 +63,85 @@ public class FinalRobot {
 		}
 	}
 
-	public static void main(String[] args) {
-		FinalRobot robot = new FinalRobot("http://127.0.0.1", 50000,
-				"path-around-table-and-back.json");
+	/**
+	 * Run method which in a do-while loop calculates the next move depending on
+	 * the given path and executes it. If the while-loop completes the robot
+	 * will stop as it has reached the goal.
+	 * 
+	 * @throws Exception
+	 */
+	public void run() throws Exception {
+		mapListIndex = 0;
+		do {
+			LocalizationResponse robotLR = new LocalizationResponse();
+			robotComm.getResponse(robotLR);
+			LocalizationResponse nextLR = new LocalizationResponse();
+			nextLR.setData(mapList.get(mapListIndex));
 
-		System.out.println("START");
-		try {
-			robot.run();
-		} catch (Exception e) {
-			System.err.println("Something went wrong: " + e.getMessage());
-			e.printStackTrace();
-		}
+			Position nextCP = carrotPlanning(robotLR, nextLR);
+
+			if (nextCP != null) {
+				calculateAndMove(robotLR, nextCP);
+			} else {
+				mapListIndex = mapList.size() + 1;
+			}
+
+			mapListIndex++;
+			if (hasReachedGoal(new Position(robotLR.getPosition()))) {
+				mapListIndex = mapList.size() + 1;
+			}
+		} while (mapList.size() > mapListIndex);
+
+		DifferentialDriveRequest ddr = new DifferentialDriveRequest();
+		ddr.setLinearSpeed(0);
+		ddr.setAngularSpeed(0);
+		robotComm.putRequest(ddr);
 	}
 
+	/**
+	 * CarrotPlanning calculates where the next target point should be by using
+	 * keepSearching method and returns that target position if it exist, else
+	 * no new targets exists and it will return null.
+	 * 
+	 * @param robotLR
+	 *            LocalizationResponse for the robot
+	 * @param nextLR
+	 *            LocalizationResponse for the next position on the path
+	 * @return the new target position or null if none exists
+	 */
 	private Position carrotPlanning(LocalizationResponse robotLR,
 			LocalizationResponse nextLR) {
 		Position currentCP = new Position(nextLR.getPosition());
-
 		LocalizationResponse tempLR = new LocalizationResponse();
 
 		if (mapList.size() > mapListIndex + 1) {
 			tempLR.setData(mapList.get(mapListIndex + 1));
 			Position nextCP = new Position(tempLR.getPosition());
 
-			while (isShortDistance(robotLR, currentCP, nextCP)) {
+			while (keepSearching(robotLR, currentCP, nextCP)) {
 				mapListIndex++;
 				tempLR.setData(mapList.get(mapListIndex));
 				nextCP = new Position(tempLR.getPosition());
 			}
-
 			return nextCP;
 		}
 		return null;
 	}
 
-	private boolean isShortDistance(LocalizationResponse robotLR,
+	/**
+	 * KeepSearching checks if the suggested next carrotpoint is in the set max
+	 * distance and angle from the current carrotpoint and if so, returns true.
+	 * 
+	 * @param robotLR
+	 *            the robots LocalizationResponse
+	 * @param currentCP
+	 *            the current carrotpoint
+	 * @param nextCP
+	 *            the suggested next carrotpoint
+	 * @return true if we should keep searching for a carrotpoint or false if
+	 *         the suggested carrotpoint is invalid
+	 */
+	private boolean keepSearching(LocalizationResponse robotLR,
 			Position currentCP, Position nextCP) {
 		Position robotPos = new Position(robotLR.getPosition());
 
@@ -111,57 +155,49 @@ public class FinalRobot {
 			return false;
 		}
 
-		return (Math.abs(currentCPDistance - nextCPDistance) < DIST_TO_NEXT_CP)
-				&& (Math.abs(calculateAngleDiff(currentCPAngle, nextCPAngle)) < ANGLE_TO_NEXT_CP);
+		return (Math.abs(currentCPDistance - nextCPDistance) < MAX_DIST_TO_NEXT_CP)
+				&& (Math.abs(calculateAngleDiff(currentCPAngle, nextCPAngle)) < MAX_ANGLE_TO_NEXT_CP);
 	}
 
+	/**
+	 * ReadFile reads the file to a List of Map objects using Typefactory to
+	 * construct the collection while parsing from JSON with ObjectMapper.
+	 * 
+	 * @param filePath
+	 *            path to the JSON path object
+	 * @return List<Map<String, Object>>
+	 * @throws JsonParseException
+	 * @throws JsonMappingException
+	 * @throws IOException
+	 */
 	public List<Map<String, Object>> readFile(String filePath)
 			throws JsonParseException, JsonMappingException, IOException {
+		ObjectMapper mapper = new ObjectMapper();
 		File file = new File(filePath);
 		return mapper.readValue(file, TypeFactory.defaultInstance()
 				.constructCollectionType(List.class, Map.class));
 	}
 
-	public void run() throws Exception {
-		long timeStart = System.currentTimeMillis();
-		System.out.println("Number of path coordinates: " + mapList.size());
-
-		mapListIndex = 0;
-		do {
-			LocalizationResponse robotLR = new LocalizationResponse();
-			LocalizationResponse nextLR = new LocalizationResponse();
-			robot.getResponse(robotLR);
-			nextLR.setData(mapList.get(mapListIndex));
-
-			Position nextCP = carrotPlanning(robotLR, nextLR);
-
-			if (nextCP != null) {
-				calculateAndMove(robotLR, nextCP);
-			}
-
-			mapListIndex++;
-			if (hasReachedGoal(new Position(robotLR.getPosition()), nextCP)) {
-				mapListIndex = mapList.size() + 1;
-			}
-
-		} while (mapList.size() > mapListIndex);
-
-		DifferentialDriveRequest ddr = new DifferentialDriveRequest();
-		ddr.setLinearSpeed(0);
-		ddr.setAngularSpeed(0);
-		putRequest(ddr);
-
-		System.out.println("TIME: "
-				+ new SimpleDateFormat("mm:ss").format(System
-						.currentTimeMillis() - timeStart));
-
-	}
-
-	private boolean hasReachedGoal(Position robotPos, Position next) {
-		return robotPos.getDistanceTo(next) <= DIST_TO_GOAL
+	/**
+	 * HasReachedGoal checks if the robot has reached the paths end-point by
+	 * checking the distance between the robot and goal but also that atleast
+	 * 80% of the path has passed.
+	 * 
+	 * @param robotPos
+	 *            current position of the robot
+	 * @return true if goal has been reached
+	 */
+	private boolean hasReachedGoal(Position robotPos) {
+		return robotPos.getDistanceTo(goalPos) <= DIST_TO_GOAL
 				&& (mapListIndex > mapList.size() * 0.8);
 	}
 
+	/**
+	 * 
+	 * @param robotLR
+	 * @param nextCP
+	 * @throws Exception
+	 */
 	private void calculateAndMove(LocalizationResponse robotLR, Position nextCP)
 			throws Exception {
 
@@ -169,19 +205,19 @@ public class FinalRobot {
 		double speed = 0;
 		double angle = 0;
 
-		while (targetDistance > DIST_TO_TARGET_MIN) {
+		while (targetDistance > MIN_DIST_TO_TARGET) {
 
-			robot.getResponse(robotLR);
+			robotComm.getResponse(robotLR);
 			Position robotPos = new Position(robotLR.getPosition());
 			double targetAngle = Math.toDegrees(robotPos.getBearingTo(nextCP));
 			double robotHeading = robotLR.getHeadingAngle() * (180 / Math.PI);
 			double angleDiff = calculateAngleDiff(robotHeading, targetAngle);
-			
+
 			targetDistance = robotPos.getDistanceTo(nextCP);
 			targetAngle = positiveDegrees(targetAngle);
-			
+
 			DifferentialDriveRequest ddr = new DifferentialDriveRequest();
-			
+
 			if (Math.abs(angleDiff) > 90) {
 				speed = 0;
 			} else {
@@ -195,8 +231,8 @@ public class FinalRobot {
 
 			ddr = collisionDetection(ddr, angle);
 
-			putRequest(ddr);
-			
+			robotComm.putRequest(ddr);
+
 			// System.out.println("Current SPEED: " + speed);
 		}
 	}
@@ -218,131 +254,15 @@ public class FinalRobot {
 
 	private DifferentialDriveRequest collisionDetection(
 			DifferentialDriveRequest ddr, double angle) throws Exception {
-
-		
-//		LaserEchoesResponse ler = new LaserEchoesResponse();
-//
-//		boolean left = true, right = true, front = true;
-//
-//		while (left || right || front) {
-//			robot.getResponse(ler);
-//			double[] echoes = ler.getEchoes();
-//			left = false;
-//			right = false;
-//			front = false;
-//
-//			double Llength = 0;
-//			double Rlength = 0;
-//			double Flength;
-//
-//			for (int i = 45; i < 225; i++) {
-//
-//				if (echoes[i] < 0.4) {
-//					if (45 < i && i < 110) {
-//						Rlength = echoes[i];
-//						right = true;
-//					}
-//				}
-//			}
-//			for (int i = 45; i < 225; i++) {
-//				if (echoes[i] < 0.4) {
-//					if (160 < i && i < 225) {
-//						Llength = echoes[i];
-//						left = true;
-//					}
-//				}
-//			}
-//			for (int i = 45; i < 225; i++) {
-//				if (echoes[i] < 0.5) {
-//					if (110 < i && i < 160) {
-//						Flength = echoes[i];
-//						front = true;
-//					}
-//				}
-//			}
-//
-//			if (left && right && !front) {
-//				ddr.setLinearSpeed(1);
-//				ddr.setAngularSpeed(0);
-//				putRequest(ddr);
-//				// Thread.sleep(100);
-//			} else if (left && !right && front) {
-//				ddr.setLinearSpeed(Llength);
-//				ddr.setAngularSpeed(-(1 - Llength));
-//				putRequest(ddr);
-//				// Thread.sleep(300);
-//				// ddr.setLinearSpeed(1);
-//				// ddr.setAngularSpeed(0);
-//				// putRequest(ddr);
-//				// Thread.sleep(100);
-//			} else if (!left && right && front) {
-//				ddr.setLinearSpeed(Rlength);
-//				ddr.setAngularSpeed(1 - Rlength);
-//				putRequest(ddr);
-//				// Thread.sleep(300);
-//				// ddr.setLinearSpeed(1);
-//				// ddr.setAngularSpeed(0);
-//				// putRequest(ddr);
-//				// Thread.sleep(100);
-//			} else if (!left && !right && front) {
-//				ddr.setLinearSpeed(0);
-//				ddr.setAngularSpeed(1);
-//				putRequest(ddr);
-//				Thread.sleep(1000);
-//			} else if (left && !right && !front) {
-//				ddr.setLinearSpeed(Llength);
-//				ddr.setAngularSpeed(-(1 - Llength));
-//				putRequest(ddr);
-//			} else if (!left && right && !front) {
-//				ddr.setLinearSpeed(Rlength);
-//				ddr.setAngularSpeed(1 - Rlength);
-//				putRequest(ddr);
-//			} else if (left && right && front) {
-//				ddr.setLinearSpeed(0);
-//				ddr.setAngularSpeed(1);
-//				putRequest(ddr);
-//				Thread.sleep(1000);
-//			}
-//
-//			if (Llength > 0) {
-//				System.out.println("LEFT: " + (-(1 - Llength)));
-//				System.out.println("SPEED: " + Llength);
-//				System.out.println();
-//			}
-//			if (Rlength > 0) {
-//				System.out.println("RIGHT: " + (1 - Rlength));
-//				System.out.println("SPEED: " + Rlength);
-//				System.out.println();
-//			}
-//
-//			// putRequest(ddr);
-//
-//			String debug = "";
-//			if (left)
-//				debug += " [LEFT] ";
-//			if (right)
-//				debug += " [RIGHT] ";
-//			if (front)
-//				debug += " [FRONT] ";
-//
-//			if (debug != "") {
-//				// System.out.println(debug);
-//			}
-//		}
-		
 		LaserEchoesResponse ler = new LaserEchoesResponse();
-		robot.getResponse(ler);
+		robotComm.getResponse(ler);
 		double[] test = ler.getEchoes();
 		for (int i = 120; i < 150; i++) {
 			if (test[i] < 0.7) {
-				System.out.println("HEJ");
 				ddr.setAngularSpeed(turnHeading(angle) * 1.4);
 				ddr.setLinearSpeed(0.2);
 			}
 		}
-
-		
-		
 		return ddr;
 	}
 
@@ -358,63 +278,27 @@ public class FinalRobot {
 	}
 
 	/**
-	 * Send a request to the robot.
+	 * Main checks for filepath to the JSON-file containing the path to follow,
+	 * otherwise the robot will run demonstration path
+	 * (Path-around-the-table-and-back.json), then runs the robot.
 	 * 
-	 * @param r
-	 *            request to send
-	 * @return response code from the connection (the web server)
-	 * @throws Exception
+	 * @param args
+	 *            must be a filepath to a JSONfile in the right format
 	 */
-	public int putRequest(Request r) throws Exception {
-		URL url = new URL(host + ":" + port + r.getPath());
+	public static void main(String[] args) {
+		FinalRobot robot;
+		if (args.length > 1) {
+			robot = new FinalRobot("http://127.0.0.1", 50000, args[1]);
+		} else {
+			robot = new FinalRobot("http://127.0.0.1", 50000,
+					"Path-around-table-and-back.json");
+		}
 
-		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-		connection.setDoOutput(true);
-
-		connection.setRequestMethod("POST");
-		connection.setRequestProperty("Content-Type", "application/json");
-		connection.setUseCaches(false);
-
-		OutputStreamWriter out = new OutputStreamWriter(
-				connection.getOutputStream());
-
-		// construct a JSON string
-		String json = mapper.writeValueAsString(r.getData());
-
-		// write it to the web server
-		out.write(json);
-		out.close();
-
-		// wait for response code
-		int rc = connection.getResponseCode();
-
-		return rc;
-	}
-
-	/**
-	 * Get a response from the robot
-	 * 
-	 * @param r
-	 *            response to fill in
-	 * @return response same as parameter
-	 * @throws Exception
-	 */
-	public Response getResponse(Response r) throws Exception {
-		URL url = new URL(host + ":" + port + r.getPath());
-
-		// open a connection to the web server and then get the resulting data
-		URLConnection connection = url.openConnection();
-		BufferedReader in = new BufferedReader(new InputStreamReader(
-				connection.getInputStream()));
-
-		// map it to a Java Map
-		@SuppressWarnings("unchecked")
-		Map<String, Object> data = mapper.readValue(in, Map.class);
-		r.setData(data);
-
-		in.close();
-
-		return r;
+		try {
+			robot.run();
+		} catch (Exception e) {
+			System.err.println("Something went wrong in robot: "
+					+ e.getMessage());
+		}
 	}
 }
