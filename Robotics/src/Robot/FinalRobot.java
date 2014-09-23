@@ -197,7 +197,8 @@ public class FinalRobot {
 	 * CalculateAndMove gets called for every new move the robot will make. It
 	 * uses a while-loop to move closer to the carrotpoint until
 	 * MIN_DIST_TO_TARGET is met. A quadratic equation is used for speed and
-	 * depends on current angle between the robots heading and the target. Before the robot makes its move 
+	 * depends on current angle between the robots heading and the target.
+	 * Before the robot makes its move it calls collisionDetection.
 	 * 
 	 * @param robotLR
 	 *            the robots LocalizationResponse
@@ -207,19 +208,16 @@ public class FinalRobot {
 	 */
 	private void calculateAndMove(LocalizationResponse robotLR, Position nextCP)
 			throws Exception {
-
-		double targetDistance = 1; // init value
+		double targetDistance = 1;
 		double speed = 0;
 		double angle = 0;
 
 		while (targetDistance > MIN_DIST_TO_TARGET) {
-
 			robotComm.getResponse(robotLR);
 			Position robotPos = new Position(robotLR.getPosition());
 			double targetAngle = Math.toDegrees(robotPos.getBearingTo(nextCP));
 			double robotHeading = robotLR.getHeadingAngle() * (180 / Math.PI);
 			double angleDiff = calculateAngleDiff(robotHeading, targetAngle);
-
 			targetDistance = robotPos.getDistanceTo(nextCP);
 			targetAngle = positiveDegrees(targetAngle);
 
@@ -242,6 +240,12 @@ public class FinalRobot {
 		}
 	}
 
+	/**
+	 * Converts angles to positives.
+	 * 
+	 * @param targetAngle
+	 * @return positive version of input
+	 */
 	private double positiveDegrees(double targetAngle) {
 		if (targetAngle < 0) {
 			targetAngle += 360;
@@ -249,7 +253,12 @@ public class FinalRobot {
 		return targetAngle;
 	}
 
-	private double turnHeading(double angle) {
+	/**
+	 * @param angle
+	 *            the angle to check
+	 * @return -1 if negative angle, otherwise returns 1
+	 */
+	private int getTurnHeading(double angle) {
 		if (angle > 0) {
 			return -1;
 		} else {
@@ -257,24 +266,53 @@ public class FinalRobot {
 		}
 	}
 
+	/**
+	 * CollisionDetection gets called every time the robot plans to move and
+	 * uses the laser to check for any obstacles 0.7m and +-15 degrees in that
+	 * direction. If anything is in the way this method will alter the command
+	 * to avoid this.
+	 * 
+	 * @param ddr
+	 *            the current move command
+	 * @param angle
+	 *            current angularspeed
+	 * @return
+	 * @throws Exception
+	 */
 	private DifferentialDriveRequest collisionDetection(
 			DifferentialDriveRequest ddr, double angle) throws Exception {
 		LaserEchoesResponse ler = new LaserEchoesResponse();
 		robotComm.getResponse(ler);
-		double[] test = ler.getEchoes();
+		double[] echoes = ler.getEchoes();
+		
 		for (int i = 120; i < 150; i++) {
-			if (test[i] < 0.7) {
-				ddr.setAngularSpeed(turnHeading(angle) * 1.4);
+			if (echoes[i] < 0.7) {
+				ddr.setAngularSpeed(getTurnHeading(angle) * 1.4);
 				ddr.setLinearSpeed(0.2);
 			}
 		}
 		return ddr;
 	}
 
+	/**
+	 * Converts degrees to radians
+	 * 
+	 * @param angle
+	 *            the angle to be converted
+	 * @return the angle in radians
+	 */
 	private double degreesToRadians(double angle) {
 		return angle * (Math.PI / 180);
 	}
 
+	/**
+	 * Calculates the difference between two angles so that it can also be used
+	 * to tell direction.
+	 * 
+	 * @param firstAngle
+	 * @param secondAngle
+	 * @return angle difference in the range -180 < angle < 180
+	 */
 	private double calculateAngleDiff(double firstAngle, double secondAngle) {
 		double diffAngle = (firstAngle - secondAngle) + 180;
 		diffAngle = (diffAngle / 360.0);
