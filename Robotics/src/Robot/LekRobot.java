@@ -28,9 +28,9 @@ public class LekRobot {
 
 	private static final double SPEED_CONSTANT = -0.000123456790123;
 	private static final int DIST_TO_GOAL = 1;
-	private static final double DIST_TO_TARGET_MIN = 0.5;
-	private static final double DIST_TO_NEXT_CP = 0.3;
-	private static final double ANGLE_TO_NEXT_CP = 10;
+	private static final double DIST_TO_TARGET_MIN = 0.8; //0.5
+	private static final double DIST_TO_NEXT_CP = 0.5; //0.3	
+	private static final double ANGLE_TO_NEXT_CP = 50; //10
 	private int mapListIndex = 0;
 	private String host;
 	private int port;
@@ -65,7 +65,7 @@ public class LekRobot {
 
 	public static void main(String[] args) {
 		LekRobot robot = new LekRobot("http://127.0.0.1", 50000,
-				"Path-around-table-and-back.json");
+				"path-around-table-and-back.json");
 
 		System.out.println("START");
 		try {
@@ -182,7 +182,6 @@ public class LekRobot {
 			
 			DifferentialDriveRequest ddr = new DifferentialDriveRequest();
 			
-
 			if (Math.abs(angleDiff) > 90) {
 				speed = 0;
 			} else {
@@ -194,15 +193,10 @@ public class LekRobot {
 			ddr.setLinearSpeed(speed);
 			ddr.setAngularSpeed(-angle);
 
-			 ddr = collisionDetection(ddr, angle);
+			ddr = collisionDetection(ddr, angle);
 
-			// avoidance
-			// 40 grader
-			// 0.8 längd
-			// 0.2 speed
-			// 1.6 angular
-			
 			putRequest(ddr);
+			
 			// System.out.println("Current SPEED: " + speed);
 		}
 	}
