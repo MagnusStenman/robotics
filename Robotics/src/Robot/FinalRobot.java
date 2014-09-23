@@ -138,7 +138,7 @@ public class FinalRobot {
 	 *            the current carrotpoint
 	 * @param nextCP
 	 *            the suggested next carrotpoint
-	 * @return true if we should keep searching for a carrotpoint or false if
+	 * @return true if robot should keep searching for a carrotpoint or false if
 	 *         the suggested carrotpoint is invalid
 	 */
 	private boolean keepSearching(LocalizationResponse robotLR,
@@ -181,7 +181,8 @@ public class FinalRobot {
 	/**
 	 * HasReachedGoal checks if the robot has reached the paths end-point by
 	 * checking the distance between the robot and goal but also that atleast
-	 * 80% of the path has passed.
+	 * 80% of the path has passed as the start and goal can be at the same
+	 * position.
 	 * 
 	 * @param robotPos
 	 *            current position of the robot
@@ -193,9 +194,15 @@ public class FinalRobot {
 	}
 
 	/**
+	 * CalculateAndMove gets called for every new move the robot will make. It
+	 * uses a while-loop to move closer to the carrotpoint until
+	 * MIN_DIST_TO_TARGET is met. A quadratic equation is used for speed and
+	 * depends on current angle between the robots heading and the target. Before the robot makes its move 
 	 * 
 	 * @param robotLR
+	 *            the robots LocalizationResponse
 	 * @param nextCP
+	 *            the next carrotpoint to aim for
 	 * @throws Exception
 	 */
 	private void calculateAndMove(LocalizationResponse robotLR, Position nextCP)
@@ -232,8 +239,6 @@ public class FinalRobot {
 			ddr = collisionDetection(ddr, angle);
 
 			robotComm.putRequest(ddr);
-
-			// System.out.println("Current SPEED: " + speed);
 		}
 	}
 
