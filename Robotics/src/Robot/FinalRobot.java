@@ -24,21 +24,21 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
-public class LekRobot {
+public class FinalRobot {
 
 	private static final double SPEED_CONSTANT = -0.000123456790123;
 	private static final int DIST_TO_GOAL = 1;
-	private static final double DIST_TO_TARGET_MIN = 0.8; //0.5
-	private static final double DIST_TO_NEXT_CP = 0.5; //0.3	
-	private static final double ANGLE_TO_NEXT_CP = 50; //10
+	private static final double DIST_TO_TARGET_MIN = 0.8;
+	private static final double DIST_TO_NEXT_CP = 0.5;
+	private static final double ANGLE_TO_NEXT_CP = 50;
 	private int mapListIndex = 0;
 	private String host;
 	private int port;
-	private LekRobot robot;
+	private FinalRobot robot;
 	private ObjectMapper mapper;
 	private List<Map<String, Object>> mapList;
 
-	public LekRobot(String host, int port) {
+	public FinalRobot(String host, int port) {
 		this.host = host;
 		this.port = port;
 		this.robot = this;
@@ -46,7 +46,7 @@ public class LekRobot {
 		mapper = new ObjectMapper();
 	}
 
-	public LekRobot(String host, int port, String filePath) {
+	public FinalRobot(String host, int port, String filePath) {
 		this.host = host;
 		this.port = port;
 		this.robot = this;
@@ -64,7 +64,7 @@ public class LekRobot {
 	}
 
 	public static void main(String[] args) {
-		LekRobot robot = new LekRobot("http://127.0.0.1", 50000,
+		FinalRobot robot = new FinalRobot("http://127.0.0.1", 50000,
 				"path-around-table-and-back.json");
 
 		System.out.println("START");
