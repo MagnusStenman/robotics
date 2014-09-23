@@ -15,7 +15,6 @@ import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.annotation.*;
 
-
 /**
  * Simple example of a robot communication interface to the (real or virtual) 
  * robot over a network connection.
