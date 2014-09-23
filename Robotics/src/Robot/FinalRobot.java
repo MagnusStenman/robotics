@@ -151,7 +151,7 @@ public class FinalRobot {
 		double currentCPAngle = robotPos.getBearingTo(currentCP);
 		double nextCPAngle = robotPos.getBearingTo(nextCP);
 
-		if (mapList.size() < mapListIndex) {
+		if (mapList.size() <= mapListIndex) {
 			return false;
 		}
 
