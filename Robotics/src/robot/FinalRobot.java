@@ -1,15 +1,16 @@
-package Robot;
+package robot;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import SuppliedFiles.DifferentialDriveRequest;
-import SuppliedFiles.LaserEchoesResponse;
-import SuppliedFiles.LocalizationResponse;
-import SuppliedFiles.Position;
-import SuppliedFiles.RobotCommunication;
+import suppliedFiles.DifferentialDriveRequest;
+import suppliedFiles.LaserEchoesResponse;
+import suppliedFiles.LocalizationResponse;
+import suppliedFiles.Position;
+import suppliedFiles.RobotCommunication;
+
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -22,7 +23,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  * 
  * @author Magnus Stenman, dv12msn
  * @author Christer Jakobsson, dv12cjn
- *
+ * @version 2014-09-25
  */
 public class FinalRobot {
 

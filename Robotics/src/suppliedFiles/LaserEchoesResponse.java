@@ -1,4 +1,4 @@
-package SuppliedFiles;
+package suppliedFiles;
 
 import java.util.ArrayList;
 import java.util.Map;

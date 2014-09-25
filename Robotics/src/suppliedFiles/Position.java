@@ -1,4 +1,4 @@
-package SuppliedFiles;
+package suppliedFiles;
 
 
 public class Position

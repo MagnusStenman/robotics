@@ -1,4 +1,4 @@
-package Robot;
+package testRobots;
 
 import java.awt.peer.RobotPeer;
 import java.io.BufferedReader;
@@ -16,11 +16,13 @@ import java.util.Map;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
-import SuppliedFiles.DifferentialDriveRequest;
-import SuppliedFiles.LocalizationResponse;
-import SuppliedFiles.Position;
-import SuppliedFiles.Request;
-import SuppliedFiles.Response;
+import suppliedFiles.DifferentialDriveRequest;
+import suppliedFiles.LocalizationResponse;
+import suppliedFiles.Position;
+import suppliedFiles.Request;
+import suppliedFiles.Response;
+
+
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;

@@ -1,10 +1,11 @@
-package Robot;
+package testRobots;
 
-import SuppliedFiles.DifferentialDriveRequest;
-import SuppliedFiles.LaserEchoesResponse;
-import SuppliedFiles.LaserPropertiesResponse;
-import SuppliedFiles.LocalizationResponse;
-import SuppliedFiles.RobotCommunication;
+import suppliedFiles.DifferentialDriveRequest;
+import suppliedFiles.LaserEchoesResponse;
+import suppliedFiles.LaserPropertiesResponse;
+import suppliedFiles.LocalizationResponse;
+import suppliedFiles.RobotCommunication;
+
 
 /**
  * TestRobot interfaces to the (real or virtual) robot over a network

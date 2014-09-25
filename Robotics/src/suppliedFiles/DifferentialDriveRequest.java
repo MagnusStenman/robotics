@@ -1,4 +1,4 @@
-package SuppliedFiles;
+package suppliedFiles;
 
 import java.net.URL;
 import java.util.HashMap;

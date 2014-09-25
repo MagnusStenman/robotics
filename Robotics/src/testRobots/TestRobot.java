@@ -1,4 +1,4 @@
-package Robot;
+package testRobots;
 
 
 import java.io.BufferedReader;
@@ -12,10 +12,12 @@ import java.net.URLConnection;
 import java.util.List;
 import java.util.Map;
 
-import SuppliedFiles.DifferentialDriveRequest;
-import SuppliedFiles.LocalizationResponse;
-import SuppliedFiles.Request;
-import SuppliedFiles.Response;
+import suppliedFiles.DifferentialDriveRequest;
+import suppliedFiles.LocalizationResponse;
+import suppliedFiles.Request;
+import suppliedFiles.Response;
+
+
 
 
 

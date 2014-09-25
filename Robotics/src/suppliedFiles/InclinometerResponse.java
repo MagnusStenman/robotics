@@ -1,4 +1,4 @@
-package SuppliedFiles;
+package suppliedFiles;
 import java.util.Map;
 
 public class InclinometerResponse implements Response

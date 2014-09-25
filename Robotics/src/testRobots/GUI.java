@@ -1,4 +1,4 @@
-package Robot;
+package testRobots;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -18,20 +18,21 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.text.Position;
 
-import SuppliedFiles.*;
+import suppliedFiles.*;
+
 
 public class GUI extends JFrame {
 
 	private JFrame frame;
 	private JPanel panel;
 	private List<Map<String, Object>> mapList;
-	private CopyOnWriteArrayList<SuppliedFiles.Position> robotPath;
+	private CopyOnWriteArrayList<suppliedFiles.Position> robotPath;
 	
 	public GUI(List<Map<String, Object>> mapList) {
 		this.mapList = mapList;
 		frame = new JFrame();
 		panel = new JPanel2();
-		robotPath = new CopyOnWriteArrayList<SuppliedFiles.Position>();
+		robotPath = new CopyOnWriteArrayList<suppliedFiles.Position>();
 
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
@@ -48,7 +49,7 @@ public class GUI extends JFrame {
 		});
 	}
 	
-	public void addStuff(SuppliedFiles.Position pos) {
+	public void addStuff(suppliedFiles.Position pos) {
 		robotPath.add(pos);
 		panel.repaint();
 	}
@@ -62,13 +63,13 @@ public class GUI extends JFrame {
 			for (int i = 0; i < mapList.size(); i++) {
 				LocalizationResponse lri = new LocalizationResponse();
 				lri.setData(mapList.get(i));
-				SuppliedFiles.Position posi = new SuppliedFiles.Position(
+				suppliedFiles.Position posi = new suppliedFiles.Position(
 						lri.getPosition());
 
 				if (i < mapList.size()-1) {
 					LocalizationResponse lrj = new LocalizationResponse();
 					lrj.setData(mapList.get(j));
-					SuppliedFiles.Position posj = new SuppliedFiles.Position(
+					suppliedFiles.Position posj = new suppliedFiles.Position(
 							lrj.getPosition());
 					g.drawLine((int) Math.round(posi.getX() * scale),
 							(int) Math.round(posi.getY() * scale),
@@ -82,7 +83,7 @@ public class GUI extends JFrame {
 			}
 			
 			if (robotPath.size() > 0) {
-				for (SuppliedFiles.Position p : robotPath) {
+				for (suppliedFiles.Position p : robotPath) {
 					g.setColor(Color.RED);
 					g.drawRect((int) Math.round(p.getX()*scale), (int) Math.round(p.getY()*scale), 2, 2);
 				}

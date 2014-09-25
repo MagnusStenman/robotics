@@ -1,4 +1,4 @@
-package Robot;
+package testRobots;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,11 +12,13 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 
-import SuppliedFiles.DifferentialDriveRequest;
-import SuppliedFiles.LocalizationResponse;
-import SuppliedFiles.Position;
-import SuppliedFiles.Request;
-import SuppliedFiles.Response;
+import suppliedFiles.DifferentialDriveRequest;
+import suppliedFiles.LocalizationResponse;
+import suppliedFiles.Position;
+import suppliedFiles.Request;
+import suppliedFiles.Response;
+
+
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
