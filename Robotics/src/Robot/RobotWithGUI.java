@@ -67,7 +67,7 @@ public class RobotWithGUI {
 
 	public static void main(String[] args) {
 		RobotWithGUI robot = new RobotWithGUI("http://127.0.0.1", 50000,
-				"path-around-table-and-back.json");
+				"log.json");
 
 		System.out.println("START");
 		try {

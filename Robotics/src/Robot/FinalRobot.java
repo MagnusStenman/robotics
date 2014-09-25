@@ -151,7 +151,7 @@ public class FinalRobot {
 		double currentCPAngle = robotPos.getBearingTo(currentCP);
 		double nextCPAngle = robotPos.getBearingTo(nextCP);
 
-		if (mapList.size() <= mapListIndex) {
+		if (mapList.size() <= mapListIndex +1) {
 			return false;
 		}
 
@@ -220,7 +220,6 @@ public class FinalRobot {
 			double angleDiff = calculateAngleDiff(robotHeading, targetAngle);
 			targetDistance = robotPos.getDistanceTo(nextCP);
 			targetAngle = positiveDegrees(targetAngle);
-
 			DifferentialDriveRequest ddr = new DifferentialDriveRequest();
 
 			if (Math.abs(angleDiff) > 90) {
@@ -330,8 +329,8 @@ public class FinalRobot {
 	 */
 	public static void main(String[] args) {
 		FinalRobot robot;
-		if (args.length > 1) {
-			robot = new FinalRobot("http://127.0.0.1", 50000, args[1]);
+		if (args.length > 0) {
+			robot = new FinalRobot("http://127.0.0.1", 50000, args[0]);
 		} else {
 			robot = new FinalRobot("http://127.0.0.1", 50000,
 					"Path-around-table-and-back.json");
@@ -342,6 +341,7 @@ public class FinalRobot {
 		} catch (Exception e) {
 			System.err.println("Something went wrong in robot: "
 					+ e.getMessage());
+			e.printStackTrace();
 		}
 	}
 }
