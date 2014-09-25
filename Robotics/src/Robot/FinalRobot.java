@@ -294,7 +294,7 @@ public class FinalRobot {
 	}
 
 	/**
-	 * Converts degrees to radians
+	 * Converts degrees to radians.
 	 * 
 	 * @param angle
 	 *            the angle to be converted
