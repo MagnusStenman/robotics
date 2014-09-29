@@ -11,7 +11,6 @@ import suppliedFiles.LocalizationResponse;
 import suppliedFiles.Position;
 import suppliedFiles.RobotCommunication;
 
-
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -216,7 +215,7 @@ public class FinalRobot {
 		double targetAngle;
 		double robotHeading;
 		double angleDiff;
-		
+
 		while (targetDistance > MIN_DIST_TO_TARGET) {
 			robotComm.getResponse(robotLR);
 			robotPos = new Position(robotLR.getPosition());
@@ -243,7 +242,6 @@ public class FinalRobot {
 		}
 	}
 
-
 	/**
 	 * @param angle
 	 *            the angle to check
@@ -259,9 +257,9 @@ public class FinalRobot {
 
 	/**
 	 * CollisionDetection gets called every time the robot plans to move and
-	 * uses the laser to check for any obstacles 0.7m and +-15 degrees in that
-	 * direction. If anything is in the way this method will alter the command
-	 * to avoid this.
+	 * uses the laser to check for any obstacles 0.7m and +-15 degrees in the
+	 * robots direction. If anything is in the way this method will alter the
+	 * command to avoid this.
 	 * 
 	 * @param ddr
 	 *            the current move command
@@ -275,7 +273,7 @@ public class FinalRobot {
 		LaserEchoesResponse ler = new LaserEchoesResponse();
 		robotComm.getResponse(ler);
 		double[] echoes = ler.getEchoes();
-		
+
 		for (int i = 120; i < 150; i++) {
 			if (echoes[i] < 0.7) {
 				ddr.setAngularSpeed(getTurnHeading(angle) * 1.4);
