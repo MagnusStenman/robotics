@@ -210,17 +210,20 @@ public class FinalRobot {
 	private void calculateAndMove(LocalizationResponse robotLR, Position nextCP)
 			throws Exception {
 		double targetDistance = 1;
-		double speed = 0;
-		double angle = 0;
-
+		double speed;
+		double angle;
+		Position robotPos;
+		double targetAngle;
+		double robotHeading;
+		double angleDiff;
+		
 		while (targetDistance > MIN_DIST_TO_TARGET) {
 			robotComm.getResponse(robotLR);
-			Position robotPos = new Position(robotLR.getPosition());
-			double targetAngle = Math.toDegrees(robotPos.getBearingTo(nextCP));
-			double robotHeading = robotLR.getHeadingAngle() * (180 / Math.PI);
-			double angleDiff = calculateAngleDiff(robotHeading, targetAngle);
+			robotPos = new Position(robotLR.getPosition());
+			targetAngle = Math.toDegrees(robotPos.getBearingTo(nextCP));
+			robotHeading = robotLR.getHeadingAngle() * (180 / Math.PI);
+			angleDiff = calculateAngleDiff(robotHeading, targetAngle);
 			targetDistance = robotPos.getDistanceTo(nextCP);
-			targetAngle = positiveDegrees(targetAngle);
 			DifferentialDriveRequest ddr = new DifferentialDriveRequest();
 
 			if (Math.abs(angleDiff) > 90) {
@@ -240,18 +243,6 @@ public class FinalRobot {
 		}
 	}
 
-	/**
-	 * Converts angles to positives.
-	 * 
-	 * @param targetAngle
-	 * @return positive version of input
-	 */
-	private double positiveDegrees(double targetAngle) {
-		if (targetAngle < 0) {
-			targetAngle += 360;
-		}
-		return targetAngle;
-	}
 
 	/**
 	 * @param angle
