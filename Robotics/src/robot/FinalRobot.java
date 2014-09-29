@@ -329,7 +329,7 @@ public class FinalRobot {
 		try {
 			robot.run();
 		} catch (Exception e) {
-			System.err.println("Something went wrong in robot: "
+			System.err.println("An error has occured with message:" 
 					+ e.getMessage());
 			e.printStackTrace();
 		}
