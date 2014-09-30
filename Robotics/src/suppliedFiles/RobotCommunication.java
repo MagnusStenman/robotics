@@ -33,14 +33,14 @@ import com.fasterxml.jackson.annotation.*;
  * Download them from http://wiki.fasterxml.com/JacksonDownload
  * under Downloads, 2.x.
  * 
- * @author Thomas Johansson, dept. of Computing Science, Umeå University, Umeå, Sweden
+ * @author Thomas Johansson, dept. of Computing Science, Umeï¿½ University, Umeï¿½, Sweden
  * Mail: thomasj@cs.umu.se
  */
 public class RobotCommunication
 {
-   private String host;
-   private int port;
-   private ObjectMapper mapper;
+   private final String host;
+   private final int port;
+   private final ObjectMapper mapper;
 
    /**
     * Create a new communications object.
