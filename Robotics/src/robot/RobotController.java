@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
 /**
- * FinalRobot class This class controls how the robot moves along a given path
+ * RobotController class This class controls how the robot moves along a given path
  * of coordinates.
  * 
  * @author Magnus Stenman, dv12msn
@@ -37,7 +37,7 @@ public class RobotController {
 	private Position goalPos;
 
 	/**
-	 * Constructor for FinalRobot.
+	 * Constructor for RobotController.
 	 * 
 	 * @param host
 	 *            communication IP-address or URL to MRDS
