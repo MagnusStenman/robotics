@@ -31,6 +31,9 @@ public class RobotController {
 	private static final double MIN_DIST_TO_TARGET = 0.8;
 	private static final double MAX_DIST_TO_NEXT_CP = 0.5;
 	private static final double MAX_ANGLE_TO_NEXT_CP = 50;
+	private static final double AVOIDANCE_TURN_SPEED = 1.4;
+	private static final double LASER_DIST = 0.7;
+	private static final double AVOIDANCE_SPEED = 0.2;
 	private int mapListIndex;
 	private List<Map<String, Object>> mapList;
 	private RobotCommunication robotComm;
@@ -275,9 +278,9 @@ public class RobotController {
 		double[] echoes = ler.getEchoes();
 
 		for (int i = 120; i < 150; i++) {
-			if (echoes[i] < 0.7) {
-				ddr.setAngularSpeed(getTurnHeading(angle) * 1.4);
-				ddr.setLinearSpeed(0.2);
+			if (echoes[i] < LASER_DIST) {
+				ddr.setAngularSpeed(getTurnHeading(angle) * AVOIDANCE_TURN_SPEED);
+				ddr.setLinearSpeed(AVOIDANCE_SPEED);
 			}
 		}
 		return ddr;
