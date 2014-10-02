@@ -153,8 +153,10 @@ public class RobotController {
 			return false;
 		}
 
-		return (Math.abs(currentCPDistance - nextCPDistance) < MAX_DIST_TO_NEXT_CP)
-				&& (Math.abs(calculateAngleDiff(currentCPAngle, nextCPAngle)) < MAX_ANGLE_TO_NEXT_CP);
+		return (Math.abs(currentCPDistance - nextCPDistance)
+					< MAX_DIST_TO_NEXT_CP)
+				&& (Math.abs(calculateAngleDiff(currentCPAngle, nextCPAngle))
+						< MAX_ANGLE_TO_NEXT_CP);
 	}
 
 	/**
